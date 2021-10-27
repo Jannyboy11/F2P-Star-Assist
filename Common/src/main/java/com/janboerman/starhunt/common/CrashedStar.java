@@ -1,9 +1,15 @@
 package com.janboerman.starhunt.common;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Objects;
 
-public final class CrashedStar {
+public final class CrashedStar implements Comparable<CrashedStar> {
+
+    private static final Comparator<CrashedStar> COMPARATOR = Comparator
+            .comparing(CrashedStar::getTier)
+            .thenComparing(CrashedStar::getLocation)
+            .thenComparing(CrashedStar::getWorld);
 
     private final StarTier tier;
     private final StarLocation location;
@@ -18,6 +24,10 @@ public final class CrashedStar {
         this.world = world;
         this.detectedAt = detectedAt;
         this.discoveredBy = discoveredBy;
+    }
+
+    public CrashedStar(StarKey key, StarTier tier, Instant detectedAt, String discoveredBy) {
+        this(tier, key.getLocation(), key.getWorld(), detectedAt, discoveredBy);
     }
 
     public StarTier getTier() {
@@ -40,6 +50,16 @@ public final class CrashedStar {
         return discoveredBy;
     }
 
+    public StarKey getKey() {
+        return new StarKey(getLocation(), getWorld());
+    }
+
+    public CrashedStar degraded() {
+        StarTier lowerTier = getTier().oneLess();
+        if (lowerTier == null) return null;
+        return new CrashedStar(lowerTier, getLocation(), getWorld(), getDetectedAt(), getDiscoveredBy());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
@@ -56,6 +76,11 @@ public final class CrashedStar {
     }
 
     @Override
+    public int compareTo(CrashedStar that) {
+        return COMPARATOR.compare(this, that);
+    }
+
+    @Override
     public String toString() {
         return "CrashedStar"
                 + "{tier=" + getTier()
@@ -65,4 +90,5 @@ public final class CrashedStar {
                 + ",detected by=" + getDiscoveredBy()
                 + "}";
     }
+
 }

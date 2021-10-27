@@ -2,6 +2,9 @@ package com.janboerman.starhunt.plugin;
 
 import javax.inject.Inject;
 
+import com.google.inject.Provides;
+import com.janboerman.starhunt.common.CrashedStar;
+import com.janboerman.starhunt.common.StarCache;
 import com.janboerman.starhunt.common.StarTier;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +13,13 @@ import net.runelite.api.GameObject;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @PluginDescriptor(
@@ -23,18 +30,33 @@ public class StarHuntPlugin extends Plugin
 	@Inject
 	private Client client;
 
-//	@Inject
-//	private StarHuntConfig config;
-//
-//	@Provides
-//	StarHuntConfig provideConfig(ConfigManager configManager)
-//	{
-//		return configManager.getConfig(StarHuntConfig.class);
-//	}
+	@Inject
+	private StarHuntConfig config;
+
+	private StarClient starClient;
+	private final StarCache knownStars = new StarCache();
+
+	@Provides
+	StarHuntConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(StarHuntConfig.class);
+	}
+
+	//TODO handle config reloads properly
+	//TODO respect configuration settings
 
 	@Override
 	protected void startUp() throws Exception
 	{
+		this.starClient = injector.getInstance(StarClient.class);
+		if (config.httpConnectionEnabled()) {
+			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars();
+			starFuture.whenCompleteAsync((stars, ex) -> {
+				//TODO chat message? sidebar panel update is better I think? but also harder.
+				//TODO let's just do a chat message first.
+			});
+		}
+
 		log.info("F2P Star Hunt started!");
 	}
 
@@ -44,20 +66,15 @@ public class StarHuntPlugin extends Plugin
 		log.info("F2P Star Hunt stopped!");
 	}
 
-//	@Subscribe
-//	public void onGameStateChanged(GameStateChanged gameStateChanged)
-//	{
-//		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
-//		{
-//			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "F2P Star Hunt says " + config.greeting(), null);
-//
-//
-//		}
-//	}
 
 	//
 	// ======= Event Listeners =======
 	//
+
+	//TODO update knownStars accordingly.
+	//TODO make sure not to send updates to the web server too frequently.
+	//TODO if a star is despawned, check whether it poofed, or a player got out of sight (or logged out)
+	//TODO 		we must ensure that we send degrade-updates or deletion-updates correctly.
 
 	@Subscribe
 	public void onGameObjectSpawned(GameObjectSpawned event) {

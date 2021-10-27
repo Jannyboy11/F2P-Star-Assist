@@ -9,21 +9,20 @@ public final class StarIds {
     private StarIds() {
     }
 
-    //not sure:
-    public static final int TIER_9 = ObjectID.CRASHED_STAR;        //41020
-    public static final int TIER_8 = ObjectID.CRASHED_STAR_41021;  //41021
-    //pretty sure:
-    public static final int TIER_7 = ObjectID.CRASHED_STAR_41223;  //41223
-    public static final int TIER_6 = ObjectID.CRASHED_STAR_41224;  //41224
-    public static final int TIER_5 = ObjectID.CRASHED_STAR_41225;  //41225
-    public static final int TIER_4 = ObjectID.CRASHED_STAR_41226;  //41226
-    //confirmed:
-    public static final int TIER_3 = ObjectID.CRASHED_STAR_41227;  //41227
-    public static final int TIER_2 = ObjectID.CRASHED_STAR_41228;  //41228
-    public static final int TIER_1 = ObjectID.CRASHED_STAR_41229;  //41229
+    //not verified whether these are correct
+    static final int TIER_9 = ObjectID.CRASHED_STAR;        //41020
+    static final int TIER_8 = ObjectID.CRASHED_STAR_41021;  //41021
+    //these are correct
+    static final int TIER_7 = ObjectID.CRASHED_STAR_41223;  //41223
+    static final int TIER_6 = ObjectID.CRASHED_STAR_41224;  //41224
+    static final int TIER_5 = ObjectID.CRASHED_STAR_41225;  //41225
+    static final int TIER_4 = ObjectID.CRASHED_STAR_41226;  //41226
+    static final int TIER_3 = ObjectID.CRASHED_STAR_41227;  //41227
+    static final int TIER_2 = ObjectID.CRASHED_STAR_41228;  //41228
+    static final int TIER_1 = ObjectID.CRASHED_STAR_41229;  //41229
 
     //rubble
-    static final int RUBBLE = 29733; //used in north-west, north-east, south-east corners
+    static final int FILLER_RUBBLE = 29733; //used in north-west, north-east, south-east corners
 
 
     public static StarTier getTier(int gameObjectId) {
