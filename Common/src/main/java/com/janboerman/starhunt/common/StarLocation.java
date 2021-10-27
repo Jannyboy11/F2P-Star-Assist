@@ -1,4 +1,4 @@
-package com.janboerman.starhunt;
+package com.janboerman.starhunt.common;
 
 public enum StarLocation {
 
@@ -7,8 +7,8 @@ public enum StarLocation {
     WILDY_SOUTH_WEST_MINE,
     WILDY_SOUTH_MINE,
 
-    DWARVEN_MINE_ENTRANCE,
-    MINING_GUILD_ENTRANCE,
+    DWARVEN_MINE,
+    MINING_GUILD,
     CRAFTING_GUILD,
     RIMMINGTON_MINE,
 
@@ -21,12 +21,10 @@ public enum StarLocation {
     VARROCK_AUBURY,
 
     AL_KHARID_MINE,
-    DUELLING_ARENA,
     AL_KHARID_BANK,
+    DUELLING_ARENA,
 
     CORSAIR_COVE_BANK,
     CORSAIR_COVE_RESOURCE_AREA;
-
-    //TODO WorldPoints :)
 
 }

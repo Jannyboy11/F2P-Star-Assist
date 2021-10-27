@@ -1,10 +1,12 @@
-package com.janboerman.starhunt;
+package com.janboerman.starhunt.plugin;
+
+import com.janboerman.starhunt.common.StarTier;
 
 import net.runelite.api.ObjectID;
 
-public final class StarId {
+public final class StarIds {
 
-    private StarId() {
+    private StarIds() {
     }
 
     //not sure:
@@ -23,21 +25,21 @@ public final class StarId {
     //rubble
     static final int RUBBLE = 29733; //used in north-west, north-east, south-east corners
 
-    public static boolean isCrashedStar(int gameObjectId) {
+
+    public static StarTier getTier(int gameObjectId) {
         switch (gameObjectId) {
-            case TIER_9:
-            case TIER_8:
-            case TIER_7:
-            case TIER_6:
-            case TIER_5:
-            case TIER_4:
-            case TIER_3:
-            case TIER_2:
-            case TIER_1:
-                return true;
-            default:
-                return false;
+            case StarIds.TIER_1: return StarTier.SIZE_1;
+            case StarIds.TIER_2: return StarTier.SIZE_2;
+            case StarIds.TIER_3: return StarTier.SIZE_3;
+            case StarIds.TIER_4: return StarTier.SIZE_4;
+            case StarIds.TIER_5: return StarTier.SIZE_5;
+            case StarIds.TIER_6: return StarTier.SIZE_6;
+            case StarIds.TIER_7: return StarTier.SIZE_7;
+            case StarIds.TIER_8: return StarTier.SIZE_8;
+            case StarIds.TIER_9: return StarTier.SIZE_9;
+            default: return null;
         }
     }
 
 }
+
