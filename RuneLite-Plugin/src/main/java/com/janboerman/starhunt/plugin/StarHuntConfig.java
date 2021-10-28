@@ -9,7 +9,8 @@ import net.runelite.client.config.ConfigSection;
 public interface StarHuntConfig extends Config
 {
 
-	// ===== HTTP =====
+	// ========================================= HTTP =========================================	\\
+	//																							\\
 
 	@ConfigSection(
 			name = "HTTP Settings",
@@ -19,7 +20,8 @@ public interface StarHuntConfig extends Config
 	)
 	public static final String HTTP_SETTINGS_SECTION = "HTTP Settings";
 
-	//
+	//																							\\
+	//																							\\
 
 	@ConfigItem(
 			position = 0,
@@ -43,7 +45,12 @@ public interface StarHuntConfig extends Config
 		return "http://localhost:8080";
 	}
 
-	// ===== Hint Arrow =====
+	//																							\\
+	// ======================================================================================== \\
+
+
+	// ====================================== Hint Arrow ====================================== \\
+	//																							\\
 
 	@ConfigSection(
 			name = "Hint Arrow Settings",
@@ -53,7 +60,8 @@ public interface StarHuntConfig extends Config
 	)
 	public static final String HINT_ARROW = "Hint Arrow Settings";
 
-	//
+	//																							\\
+	//																							\\
 
 	@ConfigItem(
 			position = 2,
@@ -66,7 +74,13 @@ public interface StarHuntConfig extends Config
 		return false;
 	}
 
-	// ===== Chat Integration =====
+	//																							\\
+	// ========================================================================================	\\
+
+
+	// =================================== Chat Integration ===================================	\\
+	//
+	//
 
 	@ConfigSection(
 			name = "Chat Integration",
@@ -76,7 +90,8 @@ public interface StarHuntConfig extends Config
 	)
 	public static final String CHAT_INTEGRATION = "Chat Integration Settings";
 
-	//
+	//																							\\
+	//																							\\
 
 	@ConfigItem(
 			position = 3,
@@ -110,5 +125,8 @@ public interface StarHuntConfig extends Config
 	default boolean interpretClanChat(){
 		return false;
 	}
+
+	//																							\\
+	// ======================================================================================== \\
 
 }

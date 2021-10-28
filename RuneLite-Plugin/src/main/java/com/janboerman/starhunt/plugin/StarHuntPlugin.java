@@ -10,9 +10,12 @@ import com.janboerman.starhunt.common.StarTier;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
+import net.runelite.api.GameState;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -76,7 +79,21 @@ public class StarHuntPlugin extends Plugin
 	//TODO if a star is despawned, check whether it poofed, or a player got out of sight (or logged out)
 	//TODO 		we must ensure that we send degrade-updates or deletion-updates correctly.
 
-	//TODO use GameTick event
+	private int gameTickCounter = 0;
+	private int spawnedTick = -1;
+	private int despawnTick = -1;
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event) {
+		if (event.getGameState() == GameState.LOGGED_IN) {
+			gameTickCounter= 0;
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event) {
+		gameTickCounter += 1;
+	}
 
 
 	@Subscribe
@@ -86,6 +103,8 @@ public class StarHuntPlugin extends Plugin
 
 		if (starSize != null) {
 			WorldPoint worldPoint = gameObject.getWorldLocation();
+			spawnedTick = gameTickCounter;
+			log.debug("gameTick = " + gameTickCounter);
 
 			log.info("A " + starSize + " star spawned at location: " + worldPoint + ".");
 		}
@@ -98,6 +117,8 @@ public class StarHuntPlugin extends Plugin
 
 		if (starSize != null) {
 			WorldPoint worldPoint = gameObject.getWorldLocation();
+			despawnTick = gameTickCounter;
+			log.debug("gameTick = "+ gameTickCounter);
 
 			log.info("A " + starSize + " star just despawned at location: " + worldPoint + ".");
 		}
@@ -106,10 +127,16 @@ public class StarHuntPlugin extends Plugin
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
 
 
-	//TODO listen on friends chat message event (configurable),
-	//TODO listen to private chat message event (configurable),
-	//TODO listen to clan chat message event (configurable),
-	//TODO detect a CrashedStar instance from the message
+
+
+
+
+
 
 
 }
+
+//TODO listen on friends chat message event (configurable),
+//TODO listen to private chat message event (configurable),
+//TODO listen to clan chat message event (configurable),
+//TODO detect a CrashedStar instance from the message
