@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>Discord-Bot</artifactId>
+    <artifactId>Web-Server</artifactId>
 
     <build>
         <plugins>
@@ -46,6 +46,13 @@
             <groupId>com.janboerman.f2p-starhunt</groupId>
             <artifactId>Common</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>31.0.1-jre</version>
             <scope>compile</scope>
         </dependency>
 

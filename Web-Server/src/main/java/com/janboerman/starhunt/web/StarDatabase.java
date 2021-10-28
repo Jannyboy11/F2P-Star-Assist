@@ -1,4 +1,4 @@
-package com.janboerman.starhunt.discord;
+package com.janboerman.starhunt.web;
 
 import com.janboerman.starhunt.common.CrashedStar;
 import com.janboerman.starhunt.common.StarCache;
@@ -12,6 +12,10 @@ public class StarDatabase {
 
     public synchronized boolean add(CrashedStar crashedStar) {
         return starCache.add(crashedStar);
+    }
+
+    public synchronized void forceAdd(CrashedStar crashedStar) {
+        starCache.forceAdd(crashedStar);
     }
 
     public synchronized void remove(StarKey starKey) {

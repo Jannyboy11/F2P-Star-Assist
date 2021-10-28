@@ -13,6 +13,7 @@
         <module>Discord-Bot</module>
         <module>RuneLite-Plugin</module>
         <module>Common</module>
+        <module>Web-Server</module>
     </modules>
 
     <properties>

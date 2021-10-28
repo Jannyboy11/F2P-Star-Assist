@@ -19,11 +19,16 @@ public final class CrashedStar implements Comparable<CrashedStar> {
     private final String discoveredBy;
 
     public CrashedStar(StarTier tier, StarLocation location, int world, Instant detectedAt, String discoveredBy) {
+        assert tier != null : "tier cannot be null";
+        assert location != null : "location cannot be null";
+        assert detectedAt != null : "detection timestamp cannot be null";
+
         this.tier = tier;
         this.location = location;
         this.world = world;
         this.detectedAt = detectedAt;
-        this.discoveredBy = discoveredBy;
+        this.discoveredBy = discoveredBy;   //differentiate between a Discord user and a RuneScape user?
+        //number of miners?
     }
 
     public CrashedStar(StarKey key, StarTier tier, Instant detectedAt, String discoveredBy) {

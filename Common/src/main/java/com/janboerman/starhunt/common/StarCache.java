@@ -24,18 +24,13 @@ public class StarCache {
         }
     }
 
+    public void forceAdd(CrashedStar star) {
+        cache.put(star.getKey(), star);
+    }
+
     public void remove(StarKey starKey) {
         cache.invalidate(starKey);
     }
-
-//    private void degrade(StarKey starKey) {
-//        CrashedStar crashedStar = cache.getIfPresent(starKey);
-//        if (crashedStar != null) {
-//            CrashedStar degraded = crashedStar.degraded();
-//            if (degraded == null) remove(starKey);
-//            else cache.put(starKey, degraded);
-//        }
-//    }
 
     public Set<CrashedStar> getStars() {
         return new HashSet<>(cache.asMap().values());

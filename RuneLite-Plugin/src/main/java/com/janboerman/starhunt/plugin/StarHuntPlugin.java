@@ -34,7 +34,7 @@ public class StarHuntPlugin extends Plugin
 	private StarHuntConfig config;
 
 	private StarClient starClient;
-	private final StarCache knownStars = new StarCache();
+	private final StarCache localCache = new StarCache();
 
 	@Provides
 	StarHuntConfig provideConfig(ConfigManager configManager)
@@ -76,6 +76,9 @@ public class StarHuntPlugin extends Plugin
 	//TODO if a star is despawned, check whether it poofed, or a player got out of sight (or logged out)
 	//TODO 		we must ensure that we send degrade-updates or deletion-updates correctly.
 
+	//TODO use GameTick event
+
+
 	@Subscribe
 	public void onGameObjectSpawned(GameObjectSpawned event) {
 		GameObject gameObject = event.getGameObject();
@@ -101,5 +104,12 @@ public class StarHuntPlugin extends Plugin
 	}
 
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
+
+
+	//TODO listen on friends chat message event (configurable),
+	//TODO listen to private chat message event (configurable),
+	//TODO listen to clan chat message event (configurable),
+	//TODO detect a CrashedStar instance from the message
+
 
 }
