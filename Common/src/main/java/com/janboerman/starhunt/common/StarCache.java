@@ -5,9 +5,7 @@ import com.google.common.cache.Cache;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 public class StarCache {
 

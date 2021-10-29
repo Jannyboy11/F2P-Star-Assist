@@ -100,6 +100,33 @@ public class StarPoints {
     }
 
     public static StarLocation toLocation(WorldPoint starPoint) {
+        if (starPoint == WILDY_RUNITE_ROCKS) return StarLocation.WILDY_RUNITE_ROCKS;
+        if (starPoint == WILDY_CENTRE_MINE) return StarLocation.WILDY_CENTRE_MINE;
+        if (starPoint == WILDY_SOUTH_WEST_MINE) return StarLocation.WILDY_CENTRE_MINE;
+        if (starPoint == WILDY_SOUTH_MINE) return StarLocation.WILDY_SOUTH_MINE;
+
+        if (starPoint == DWARVEN_MINE) return StarLocation.DWARVEN_MINE;
+        if (starPoint == MINING_GUILD) return StarLocation.MINING_GUILD;
+        if (starPoint == CRAFTING_GUILD) return StarLocation.CRAFTING_GUILD;
+        if (starPoint == RIMMINGTON_MINE) return StarLocation.RIMMINGTON_MINE;
+
+        if (starPoint == DRAYNOR_VILLAGE_BANK) return StarLocation.DRAYNOR_VILLAGE_BANK;
+        if (starPoint == LUMBRIDGE_SWAMP_SOUTH_WEST_MINE) return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
+        if (starPoint == LUMBRIDGE_SWAMP_SOUTH_EAST_MINE) return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
+
+        if (starPoint == VARROCK_SOUTH_WEST_MINE) return StarLocation.VARROCK_SOUTH_WEST_MINE;
+        if (starPoint == VARROCK_SOUTH_EAST_MINE) return StarLocation.VARROCK_SOUTH_EAST_MINE;
+        if (starPoint == VARROCK_AUBURY) return StarLocation.VARROCK_AUBURY;
+
+        if (starPoint == AL_KHARID_MINE) return StarLocation.AL_KHARID_MINE;
+        if (starPoint == AL_KHARID_BANK) return StarLocation.AL_KHARID_BANK;
+        if (starPoint == DUELLING_ARENA) return StarLocation.DUELLING_ARENA;
+
+        if (starPoint == CRANDOR_NORTH_MINE) return StarLocation.CRANDOR_NORTH_MINE;
+        if (starPoint == CRANDOR_SOUTH_MINE) return StarLocation.CRANDOR_SOUTH_MINE;
+        if (starPoint == CORSAIR_COVE_BANK) return StarLocation.CORSAIR_COVE_BANK;
+        if (starPoint == CORSAIR_COVE_RESOURCE_AREA) return StarLocation.CORSAIR_COVE_RESOURCE_AREA;
+
         return LOCATIONS.get(starPoint);
     }
 

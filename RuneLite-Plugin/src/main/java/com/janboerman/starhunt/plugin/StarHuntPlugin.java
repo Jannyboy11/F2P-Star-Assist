@@ -4,9 +4,9 @@ import javax.inject.Inject;
 
 import com.google.inject.Provides;
 import com.janboerman.starhunt.common.CrashedStar;
+import com.janboerman.starhunt.common.RunescapeUser;
 import com.janboerman.starhunt.common.StarCache;
 import com.janboerman.starhunt.common.StarKey;
-import com.janboerman.starhunt.common.StarLocation;
 import com.janboerman.starhunt.common.StarTier;
 
 import lombok.extern.slf4j.Slf4j;
@@ -125,6 +125,7 @@ public class StarHuntPlugin extends Plugin
 	public void onGameTick(GameTick event) {
 		if (despawnStarKey != null && despawnStarKey.getWorld() == client.getWorld() && gameTick == despawnStarTick) {
 			assert despawnStarTier != null : "despawnStarKey is not null, but despawnStarTier is!";
+			assert despawnStarTier.compareTo(StarTier.SIZE_1) > 0 : "despawnStarTier must never be never size 1!";
 
 			WorldPoint starPoint = StarPoints.fromLocation(despawnStarKey.getLocation());
 			Tile tile = client.getScene().getTiles()[starPoint.getPlane()][starPoint.getX()][starPoint.getY()];
@@ -148,7 +149,8 @@ public class StarHuntPlugin extends Plugin
 			despawnStarTick = -1;
 		}
 
-		gameTick += 1;
+		gameTick += 1;	//This can't ever overflow. One would have to play for 113 years straight!
+		assert gameTick > 0 : "Impossibru!";
 	}
 
 	@Subscribe
@@ -190,7 +192,7 @@ public class StarHuntPlugin extends Plugin
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), client.getUsername()));
+			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getUsername())));
 		} else {
 			//a star has degraded
 			reportStarUpdate(knownStar, starTier);

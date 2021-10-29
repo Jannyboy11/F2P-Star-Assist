@@ -6,9 +6,6 @@ import net.runelite.api.ObjectID;
 
 public final class StarIds {
 
-    private StarIds() {
-    }
-
     static final int TIER_9 = ObjectID.CRASHED_STAR;        //41020
     static final int TIER_8 = ObjectID.CRASHED_STAR_41021;  //41021
     static final int TIER_7 = ObjectID.CRASHED_STAR_41223;  //41223
@@ -22,6 +19,8 @@ public final class StarIds {
     //rubble
     static final int FILLER_RUBBLE = 29733; //used in north-west, north-east, south-east corners
 
+    private StarIds() {
+    }
 
     public static StarTier getTier(int gameObjectId) {
         switch (gameObjectId) {

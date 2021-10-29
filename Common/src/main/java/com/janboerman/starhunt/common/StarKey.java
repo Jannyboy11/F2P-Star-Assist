@@ -13,8 +13,8 @@ public final class StarKey implements Comparable<StarKey> {
     private final int world;
 
     public StarKey(StarLocation location, int world) {
-        this.location = location;
-        this.world = world;
+        this.location = Objects.requireNonNull(location);
+        this.world = Objects.requireNonNull(world);
     }
 
     public StarLocation getLocation() {

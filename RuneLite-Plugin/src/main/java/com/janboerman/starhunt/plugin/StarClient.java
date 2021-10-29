@@ -19,7 +19,6 @@ import okhttp3.ResponseBody;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.Reader;
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -66,20 +65,12 @@ public class StarClient {
                     JsonParser jsonParser = new JsonParser();
                     JsonElement jsonElement = jsonParser.parse(reader);
 
-                    Set<CrashedStar> result = new HashSet<>();
-
                     if (jsonElement instanceof JsonArray) {
                         JsonArray jsonArray = (JsonArray) jsonElement;
-
-                        for (JsonElement element : jsonArray) {
-                            if (element instanceof JsonObject) {
-                                JsonObject crashedStar = (JsonObject) element;
-                                result.add(StarJson.crashedStar(crashedStar));
-                            }
-                        }
+                        future.complete(StarJson.crashedStars(jsonArray));
+                    } else {
+                        future.completeExceptionally(new RuntimeException("Unexpected JSON element: " + jsonElement));
                     }
-
-                    future.complete(result);
 
                 } finally {
                     response.close();

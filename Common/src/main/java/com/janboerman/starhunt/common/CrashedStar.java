@@ -16,12 +16,12 @@ public final class CrashedStar implements Comparable<CrashedStar> {
     private StarTier tier;
 
     private final Instant detectedAt;
-    private final String discoveredBy;
+    private final User discoveredBy;
 
-    public CrashedStar(StarTier tier, StarLocation location, int world, Instant detectedAt, String discoveredBy) {
-        assert tier != null : "tier cannot be null";
-        assert location != null : "location cannot be null";
-        assert detectedAt != null : "detection timestamp cannot be null";
+    public CrashedStar(StarTier tier, StarLocation location, int world, Instant detectedAt, User discoveredBy) {
+        Objects.requireNonNull(tier,"tier cannot be null");
+        Objects.requireNonNull(location, "location cannot be null");
+        Objects.requireNonNull(detectedAt, "detection timestamp cannot be null");
 
         this.tier = tier;
         this.location = location;
@@ -31,11 +31,11 @@ public final class CrashedStar implements Comparable<CrashedStar> {
         //number of miners?
     }
 
-    public CrashedStar(StarKey key, StarTier tier, Instant detectedAt, String discoveredBy) {
+    public CrashedStar(StarKey key, StarTier tier, Instant detectedAt, User discoveredBy) {
         this(tier, key.getLocation(), key.getWorld(), detectedAt, discoveredBy);
     }
 
-    public StarTier getTier() {
+    public synchronized StarTier getTier() {
         return tier;
     }
 
@@ -51,7 +51,7 @@ public final class CrashedStar implements Comparable<CrashedStar> {
         return detectedAt;
     }
 
-    public String getDiscoveredBy() {
+    public User getDiscoveredBy() {
         return discoveredBy;
     }
 
@@ -59,7 +59,7 @@ public final class CrashedStar implements Comparable<CrashedStar> {
         return new StarKey(getLocation(), getWorld());
     }
 
-    public void setTier(StarTier lowerTier) {
+    public synchronized void setTier(StarTier lowerTier) {
         assert lowerTier != null : "tier cannot be null";
         assert lowerTier.compareTo(tier) < 0 : "lower tier (" + lowerTier + ") must be lower than the existing tier (" + tier + ")";
         tier = lowerTier;
@@ -71,13 +71,14 @@ public final class CrashedStar implements Comparable<CrashedStar> {
         if (!(o instanceof CrashedStar)) return false;
 
         CrashedStar that = (CrashedStar) o;
-        return Objects.equals(this.getLocation(), that.getLocation())
-                && Objects.equals(this.getWorld(), that.getWorld());
+        return this.getLocation() == that.getLocation()
+                && this.getWorld() == that.getWorld()
+                && this.getTier() == that.getTier();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getLocation(), getWorld());
+        return Objects.hash(getLocation(), getWorld(), getTier());
     }
 
     @Override

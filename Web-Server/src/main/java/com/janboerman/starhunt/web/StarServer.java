@@ -1,11 +1,27 @@
 package com.janboerman.starhunt.web;
 
+import org.eclipse.jetty.server.Server;
+
+import java.util.logging.Logger;
+
 public class StarServer {
 
-    //TODO use Jetty
+    private StarServer() {
+    }
 
-    //TODO implement endpoints
+    public static void main(String[] args) throws Exception {
+        Logger logger = Logger.getLogger("star server");
 
-    //TODO split Discord Bot and Web Server into two projects
+        final int port = 8080;
+
+        Server server = new Server(port);
+        server.setHandler(new StarHandler(new StarDatabase()));
+
+        logger.info("Started StarServer on port " + port + "!");
+
+        server.start();
+        server.join();
+    }
+
 
 }
