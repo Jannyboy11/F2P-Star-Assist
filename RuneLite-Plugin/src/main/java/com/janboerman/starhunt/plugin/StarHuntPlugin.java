@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
+import net.runelite.api.Tile;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
@@ -74,13 +75,25 @@ public class StarHuntPlugin extends Plugin
 
 
 	//
+	// ======= Star Cache Bookkeeping =======
+	// TODO make sure to post updates to the web server, if configured
+
+	public void reportStarNew(CrashedStar star) {
+		starCache.add(star);
+	}
+
+	public void reportStarUpdate(StarKey starKey, StarTier newTier) {
+		starCache.get(starKey).setTier(newTier);
+	}
+
+	public void reportStarGone(StarKey starKey) {
+		starCache.remove(starKey);
+	}
+
+
+	//
 	// ======= Event Listeners =======
 	//
-
-	//TODO update knownStars accordingly.
-	//TODO make sure not to send updates to the web server too frequently.
-	//TODO if a star is despawned, check whether it poofed, or a player got out of sight (or logged out)
-	//TODO 		we must ensure that we send degrade-updates or deletion-updates correctly.
 
 	private static final int DETECTION_DISTANCE = 25;
 
@@ -95,6 +108,49 @@ public class StarHuntPlugin extends Plugin
 				&& starY - DETECTION_DISTANCE <= playerY && playerY <= starY + DETECTION_DISTANCE;
 	}
 
+	private int gameTick = 0;
+	private StarKey despawnStarKey = null;
+	private StarTier despawnStarTier = null;
+	private int despawnStarTick = -1;
+
+	@Subscribe
+	public void onGameStateChange(GameStateChanged event) {
+		if (event.getGameState() == GameState.LOGGED_IN) {
+			gameTick = 0;
+		}
+	}
+
+	//called AFTER all packets have processed (so, after GameObjectDespawned and GameObjectSpawned I suppose)
+	@Subscribe
+	public void onGameTick(GameTick event) {
+		if (despawnStarKey != null && despawnStarKey.getWorld() == client.getWorld() && gameTick == despawnStarTick) {
+			assert despawnStarTier != null : "despawnStarKey is not null, but despawnStarTier is!";
+
+			WorldPoint starPoint = StarPoints.fromLocation(despawnStarKey.getLocation());
+			Tile tile = client.getScene().getTiles()[starPoint.getPlane()][starPoint.getX()][starPoint.getY()];
+
+			StarTier newTier = null;
+			for (GameObject gameObject : tile.getGameObjects()) {
+				StarTier tier = StarIds.getTier(gameObject.getId());
+				if (tier == despawnStarTier.oneLess()) {
+					//a new star exists
+					newTier = tier;
+					break;
+				}
+			}
+
+			if (newTier == null) {
+				reportStarGone(despawnStarKey);
+			}
+
+			despawnStarKey = null;
+			despawnStarTier = null;
+			despawnStarTick = -1;
+		}
+
+		gameTick += 1;
+	}
+
 	@Subscribe
 	public void onGameObjectDespawned(GameObjectDespawned event) {
 		if (client.getGameState() != GameState.LOGGED_IN) return;	//player not in the world
@@ -107,18 +163,26 @@ public class StarHuntPlugin extends Plugin
 		StarKey starKey = new StarKey(StarPoints.toLocation(worldPoint), client.getWorld());
 
 		if (playerInRange(worldPoint)) {
-			//don't check whether the star size is tier 1, because stars can poof!
-			starCache.remove(starKey);
+			if (starTier == StarTier.SIZE_1) {
+				//the star was mined out completely, or it poofed at t1.
+				reportStarGone(starKey);
+			} else {
+				//it either degraded one tier, or disintegrated completely (poofed).
+				//check whether a new star exists in onGameTick.
+				despawnStarKey = starKey;
+				despawnStarTier = starTier;
+				despawnStarTick = gameTick;
+			}
 		}
 
-		log.info("A " + starTier + " star just despawned at location: " + worldPoint + ".");
+		log.debug("A " + starTier + " star just despawned at location: " + worldPoint + ".");
 	}
 
 	@Subscribe
 	public void onGameObjectSpawned(GameObjectSpawned event) {
 		GameObject gameObject = event.getGameObject();
 		StarTier starTier = StarIds.getTier(gameObject.getId());
-		if (starTier == null) return;
+		if (starTier == null) return;	//not a star
 
 		WorldPoint worldPoint = gameObject.getWorldLocation();
 		StarKey starKey = new StarKey(StarPoints.toLocation(worldPoint), client.getWorld());
@@ -126,16 +190,15 @@ public class StarHuntPlugin extends Plugin
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			knownStar = new CrashedStar(starKey, starTier, Instant.now(), client.getUsername());
-			starCache.add(knownStar);
+			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), client.getUsername());
 		} else {
 			//a star has degraded
-			knownStar.setTier(starTier);
+			reportStarUpdate(starKey, starTier);
 		}
 
-		log.info("A " + starTier + " star spawned at location: " + worldPoint + ".");
+		log.debug("A " + starTier + " star spawned at location: " + worldPoint + ".");
 	}
-	
+
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
 
 }
