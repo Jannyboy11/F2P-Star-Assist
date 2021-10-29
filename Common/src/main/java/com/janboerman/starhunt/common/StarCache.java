@@ -5,7 +5,9 @@ import com.google.common.cache.Cache;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class StarCache {
 
@@ -24,12 +26,18 @@ public class StarCache {
         }
     }
 
+    public CrashedStar get(StarKey key) {
+        return cache.getIfPresent(key);
+    }
+
     public void forceAdd(CrashedStar star) {
         cache.put(star.getKey(), star);
     }
 
-    public void remove(StarKey starKey) {
+    public boolean remove(StarKey starKey) {
+        boolean contains = cache.getIfPresent(starKey) != null;
         cache.invalidate(starKey);
+        return contains;
     }
 
     public Set<CrashedStar> getStars() {

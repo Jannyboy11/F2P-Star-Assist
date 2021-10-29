@@ -11,9 +11,9 @@ public final class CrashedStar implements Comparable<CrashedStar> {
             .thenComparing(CrashedStar::getLocation)
             .thenComparing(CrashedStar::getWorld);
 
-    private final StarTier tier;
     private final StarLocation location;
     private final int world;
+    private StarTier tier;
 
     private final Instant detectedAt;
     private final String discoveredBy;
@@ -59,10 +59,9 @@ public final class CrashedStar implements Comparable<CrashedStar> {
         return new StarKey(getLocation(), getWorld());
     }
 
-    public CrashedStar degraded() {
-        StarTier lowerTier = getTier().oneLess();
-        if (lowerTier == null) return null;
-        return new CrashedStar(lowerTier, getLocation(), getWorld(), getDetectedAt(), getDiscoveredBy());
+    public void setTier(StarTier lowerTier) {
+        assert lowerTier != null : "tier cannot be null";
+        tier = lowerTier;
     }
 
     @Override

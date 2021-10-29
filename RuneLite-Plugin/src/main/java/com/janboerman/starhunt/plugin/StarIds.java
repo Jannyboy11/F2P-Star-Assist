@@ -9,10 +9,8 @@ public final class StarIds {
     private StarIds() {
     }
 
-    //not verified whether these are correct
     static final int TIER_9 = ObjectID.CRASHED_STAR;        //41020
     static final int TIER_8 = ObjectID.CRASHED_STAR_41021;  //41021
-    //these are correct
     static final int TIER_7 = ObjectID.CRASHED_STAR_41223;  //41223
     static final int TIER_6 = ObjectID.CRASHED_STAR_41224;  //41224
     static final int TIER_5 = ObjectID.CRASHED_STAR_41225;  //41225

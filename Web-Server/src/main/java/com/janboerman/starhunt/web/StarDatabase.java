@@ -14,12 +14,16 @@ public class StarDatabase {
         return starCache.add(crashedStar);
     }
 
+    public synchronized CrashedStar get(StarKey starKey) {
+        return starCache.get(starKey);
+    }
+
     public synchronized void forceAdd(CrashedStar crashedStar) {
         starCache.forceAdd(crashedStar);
     }
 
-    public synchronized void remove(StarKey starKey) {
-        starCache.remove(starKey);
+    public synchronized boolean remove(StarKey starKey) {
+        return starCache.remove(starKey);
     }
 
     public synchronized Set<CrashedStar> getStars() {

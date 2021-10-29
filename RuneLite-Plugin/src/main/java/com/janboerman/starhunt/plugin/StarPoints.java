@@ -4,7 +4,10 @@ import com.janboerman.starhunt.common.StarLocation;
 
 import net.runelite.api.coords.WorldPoint;
 
-public class WorldPoints {
+import java.util.HashMap;
+import java.util.Map;
+
+public class StarPoints {
 
     static final WorldPoint WILDY_RUNITE_ROCKS = new WorldPoint(3057, 3887, 0);
     static final WorldPoint WILDY_CENTRE_MINE = new WorldPoint(3093, 3756, 0);
@@ -32,6 +35,36 @@ public class WorldPoints {
     static final WorldPoint CRANDOR_SOUTH_MINE = new WorldPoint(2822, 3238, 0);
     static final WorldPoint CORSAIR_COVE_BANK = new WorldPoint(2567, 2858, 0);
     static final WorldPoint CORSAIR_COVE_RESOURCE_AREA = new WorldPoint(2483, 2886, 0);
+
+    private static final Map<WorldPoint, StarLocation> LOCATIONS = new HashMap<>();
+    static {
+        LOCATIONS.put(WILDY_RUNITE_ROCKS, StarLocation.WILDY_RUNITE_ROCKS);
+        LOCATIONS.put(WILDY_CENTRE_MINE, StarLocation.WILDY_CENTRE_MINE);
+        LOCATIONS.put(WILDY_SOUTH_WEST_MINE, StarLocation.WILDY_SOUTH_WEST_MINE);
+        LOCATIONS.put(WILDY_SOUTH_MINE, StarLocation.WILDY_SOUTH_MINE);
+
+        LOCATIONS.put(DWARVEN_MINE, StarLocation.DWARVEN_MINE);
+        LOCATIONS.put(MINING_GUILD, StarLocation.MINING_GUILD);
+        LOCATIONS.put(CRAFTING_GUILD, StarLocation.CRAFTING_GUILD);
+        LOCATIONS.put(RIMMINGTON_MINE, StarLocation.RIMMINGTON_MINE);
+
+        LOCATIONS.put(DRAYNOR_VILLAGE_BANK, StarLocation.DRAYNOR_VILLAGE_BANK);
+        LOCATIONS.put(LUMBRIDGE_SWAMP_SOUTH_WEST_MINE, StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE);
+        LOCATIONS.put(LUMBRIDGE_SWAMP_SOUTH_EAST_MINE, StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE);
+
+        LOCATIONS.put(VARROCK_SOUTH_WEST_MINE, StarLocation.VARROCK_SOUTH_WEST_MINE);
+        LOCATIONS.put(VARROCK_SOUTH_EAST_MINE, StarLocation.VARROCK_SOUTH_EAST_MINE);
+        LOCATIONS.put(VARROCK_AUBURY, StarLocation.VARROCK_AUBURY);
+
+        LOCATIONS.put(AL_KHARID_MINE, StarLocation.AL_KHARID_MINE);
+        LOCATIONS.put(AL_KHARID_BANK, StarLocation.AL_KHARID_BANK);
+        LOCATIONS.put(DUELLING_ARENA, StarLocation.DUELLING_ARENA);
+
+        LOCATIONS.put(CRANDOR_NORTH_MINE, StarLocation.CRANDOR_NORTH_MINE);
+        LOCATIONS.put(CRANDOR_SOUTH_MINE, StarLocation.CRANDOR_SOUTH_MINE);
+        LOCATIONS.put(CORSAIR_COVE_BANK, StarLocation.CORSAIR_COVE_BANK);
+        LOCATIONS.put(CORSAIR_COVE_RESOURCE_AREA, StarLocation.CORSAIR_COVE_RESOURCE_AREA);
+    }
 
     public static WorldPoint fromLocation(StarLocation location) {
         switch (location) {
@@ -64,6 +97,10 @@ public class WorldPoints {
 
             default: throw new RuntimeException("A new StarLocation was added which has no registered WorldPoint yet: " + location);
         }
+    }
+
+    public static StarLocation toLocation(WorldPoint starPoint) {
+        return LOCATIONS.get(starPoint);
     }
 
 }
