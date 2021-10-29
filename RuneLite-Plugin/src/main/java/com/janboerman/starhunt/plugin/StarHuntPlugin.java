@@ -82,8 +82,8 @@ public class StarHuntPlugin extends Plugin
 		starCache.add(star);
 	}
 
-	public void reportStarUpdate(StarKey starKey, StarTier newTier) {
-		starCache.get(starKey).setTier(newTier);
+	public void reportStarUpdate(CrashedStar star, StarTier newTier) {
+		star.setTier(newTier);
 	}
 
 	public void reportStarGone(StarKey starKey) {
@@ -190,10 +190,10 @@ public class StarHuntPlugin extends Plugin
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), client.getUsername());
+			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), client.getUsername()));
 		} else {
 			//a star has degraded
-			reportStarUpdate(starKey, starTier);
+			reportStarUpdate(knownStar, starTier);
 		}
 
 		log.debug("A " + starTier + " star spawned at location: " + worldPoint + ".");
