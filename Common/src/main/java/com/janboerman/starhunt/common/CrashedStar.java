@@ -93,7 +93,7 @@ public final class CrashedStar implements Comparable<CrashedStar> {
                 + ",location=" + getLocation()
                 + ",world=" + getWorld()
                 + ",detected at=" + getDetectedAt()
-                + ",detected by=" + getDiscoveredBy()
+                + ",discovered by=" + getDiscoveredBy()
                 + "}";
     }
 

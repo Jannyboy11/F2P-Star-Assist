@@ -5,15 +5,14 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 
-@ConfigGroup("F2P StarHunt")
-public interface StarHuntConfig extends Config
-{
+@ConfigGroup("F2P Star Hunt")
+public interface StarHuntConfig extends Config {
 
 	// ========================================= HTTP =========================================	\\
 	//																							\\
 
 	@ConfigSection(
-			name = "HTTP Settings",
+			name = "Webserver Settings",
 			description = "Settings for sending and receiving data from the webserver",
 			position = 0,
 			closedByDefault = false
@@ -27,7 +26,7 @@ public interface StarHuntConfig extends Config
 			position = 0,
 			keyName = "send and receive",
 			name = "Enable webserver communication",
-			description = "Whether to send and receive data from the webserver.",
+			description = "Whether to send and receive data from the webserver",
 			section = HTTP_SETTINGS_SECTION
 	)
 	default boolean httpConnectionEnabled() {
@@ -38,7 +37,7 @@ public interface StarHuntConfig extends Config
 			position = 1,
 			keyName = "url",
 			name = "Webserver URL",
-			description = "The address of the webserver with which star locations are shared.",
+			description = "The address of the webserver with which star locations are shared",
 			section = HTTP_SETTINGS_SECTION
 	)
 	default String httpUrl() {
@@ -105,10 +104,10 @@ public interface StarHuntConfig extends Config
 	//
 
 	@ConfigSection(
-			name = "Chat Integration",
+			name = "Chat Integration Settings",
 			description = "Integration with chat channels",
 			position = 2,
-			closedByDefault = true
+			closedByDefault = false
 	)
 	public static final String CHAT_INTEGRATION = "Chat Integration Settings";
 

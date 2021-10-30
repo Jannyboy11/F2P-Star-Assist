@@ -1,6 +1,7 @@
 package com.janboerman.starhunt.plugin;
 
 import javax.inject.Inject;
+import javax.swing.*;
 
 import com.google.inject.Provides;
 import com.janboerman.starhunt.common.CrashedStar;
@@ -10,42 +11,66 @@ import com.janboerman.starhunt.common.StarKey;
 import com.janboerman.starhunt.common.StarTier;
 
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Tile;
+import net.runelite.api.World;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.game.WorldService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.WorldUtil;
+import net.runelite.http.api.worlds.WorldResult;
+import okhttp3.Call;
+import okio.Buffer;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-@PluginDescriptor(
-	name = "F2P Star Hunt"
-)
-public class StarHuntPlugin extends Plugin
-{
-	@Inject
-	private Client client;
+@PluginDescriptor(name = "F2P Star Hunt")
+public class StarHuntPlugin extends Plugin {
 
-	@Inject
-	private StarHuntConfig config;
+	//populated manually
+	private final StarCache starCache;
 
+	//populated right after construction
+	@Inject private Client client;
+	@Inject private ClientToolbar clientToolbar;
+	@Inject private StarHuntConfig config;
+	@Inject private WorldService worldService;
+	@Inject private ClientThread clientThread;
+
+	//populated on start-up
 	private StarClient starClient;
-	private final StarCache starCache = new StarCache();
+	private StarHuntPanel panel;
+	private NavigationButton navButton;
+
+	public StarHuntPlugin() {
+		this.starCache = new StarCache();
+	}
 
 	@Provides
-	StarHuntConfig provideConfig(ConfigManager configManager)
-	{
+	StarHuntConfig provideConfig(ConfigManager configManager) {
 		return configManager.getConfig(StarHuntConfig.class);
 	}
 
@@ -53,52 +78,168 @@ public class StarHuntPlugin extends Plugin
 	//TODO respect configuration settings
 
 	@Override
-	protected void startUp() throws Exception
-	{
+	protected void startUp() throws Exception {
 		this.starClient = injector.getInstance(StarClient.class);
-		if (config.httpConnectionEnabled()) {
-			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars();
-			starFuture.whenCompleteAsync((stars, ex) -> {
-				//TODO chat message? sidebar panel update is better I think? but also harder.
-				//TODO let's just do a chat message first.
-			});
-		}
+		this.panel = new StarHuntPanel(this, config);
+		BufferedImage icon = ImageUtil.loadImageResource(StarHuntPlugin.class, "/icon.png");
+		this.navButton = NavigationButton.builder()
+				.tooltip("F2P Star Hunt")
+				.icon(icon)
+				.priority(10)
+				.panel(panel)
+				.build();
+
+		clientToolbar.addNavigation(navButton);
+
+		updateStarList();
 
 		log.info("F2P Star Hunt started!");
 	}
 
 	@Override
-	protected void shutDown() throws Exception
-	{
+	protected void shutDown() throws Exception {
+		clientToolbar.removeNavigation(navButton);
+
 		log.info("F2P Star Hunt stopped!");
 	}
 
+	public void updateStarList() {
+		if (config.httpConnectionEnabled()) {
+			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars();
+			starFuture.whenCompleteAsync((stars, ex) -> {
+				if (ex != null) {
+					log.error("Error when receiving star data", ex);
+					return;
+				}
+
+				clientThread.invoke(() -> {
+					starCache.addAll(stars);
+					updatePanel();
+				});
+
+				String message = stars.isEmpty() ? "There are no known live stars currently." : "A handful of stars is alive!";
+				log.debug(message);
+			});
+		}
+	}
+
+
+	public void hopAndHint(CrashedStar star) {
+		int starWorld = star.getWorld();
+		int currentWorld = client.getWorld();
+
+		if (currentWorld != starWorld) {
+			WorldResult worldResult = worldService.getWorlds();
+			if (worldResult != null) {
+				clientThread.invoke(() -> {
+					World world = rsWorld(worldResult.findWorld(starWorld));
+					if (world != null) {
+						client.hopToWorld(world);
+					}
+				});
+			}
+		}
+
+		if (config.hintArrowEnabled()) {
+			WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
+			clientThread.invoke(() -> client.setHintArrow(starPoint));
+			//TODO this int arrow should be cleared once the player arrives at the star
+		}
+	}
+
+
+	private World rsWorld(net.runelite.http.api.worlds.World world) {
+		if (world == null) return null;
+		assert client.isClientThread();
+
+		World rsWorld = client.createWorld();
+		rsWorld.setActivity(world.getActivity());
+		rsWorld.setAddress(world.getAddress());
+		rsWorld.setId(world.getId());
+		rsWorld.setPlayerCount(world.getPlayers());
+		rsWorld.setLocation(world.getLocation());
+		rsWorld.setTypes(WorldUtil.toWorldTypes(world.getTypes()));
+
+		return rsWorld;
+	}
 
 	//
 	// ======= Star Cache Bookkeeping =======
+	//
 
 	public void reportStarNew(CrashedStar star, boolean broadcast) {
-		starCache.add(star);
+		log.debug("Found new star!");
+		boolean isNew = starCache.add(star);
+		if (isNew) {
+			log.debug("Found a new star: " + star + "! Updating panel...");
+			updatePanel();
+		}
 
 		if (broadcast && config.httpConnectionEnabled()) {
-			starClient.sendStar(star);
+			CompletableFuture<Optional<CrashedStar>> upToDateStar = starClient.sendStar(star);
+			upToDateStar.whenCompleteAsync((optionalStar, ex) -> {
+				if (ex != null) {
+					logServerError(ex);
+				}
+
+				else if (optionalStar.isPresent()) {
+					CrashedStar theStar = optionalStar.get();
+					clientThread.invoke(() -> { starCache.forceAdd(theStar); updatePanel(); });
+				}
+			});
 		}
 	}
 
 	public void reportStarUpdate(CrashedStar star, StarTier newTier, boolean broadcast) {
+		if (star.getTier() == newTier) return;
+
 		star.setTier(newTier);
+		updatePanel();
 
 		if (broadcast && config.httpConnectionEnabled()) {
-			starClient.updateStar(star.getKey(), newTier);
+			CompletableFuture<CrashedStar> upToDateStar = starClient.updateStar(star.getKey(), newTier);
+			upToDateStar.whenCompleteAsync((theStar, ex) -> {
+				if (ex != null) {
+					logServerError(ex);
+				}
+
+				else if (!theStar.equals(star)) {
+					clientThread.invoke(() -> { starCache.forceAdd(theStar); updatePanel(); });
+				}
+			});
 		}
 	}
 
 	public void reportStarGone(StarKey starKey, boolean broadcast) {
 		starCache.remove(starKey);
+		updatePanel();
 
 		if (broadcast && config.httpConnectionEnabled()) {
 			starClient.deleteStar(starKey);
 		}
+	}
+
+	private void logServerError(Throwable ex) {
+		log.warn("Unexpected result from web server", ex);
+		if (ex instanceof ResponseException) {
+			Call call = ((ResponseException) ex).getCall();
+			log.debug("Request that caused it: " + call.request());
+			Buffer buffer = new Buffer();
+			try {
+				call.request().body().writeTo(buffer);
+				log.debug("Request body: " + buffer.readString(StandardCharsets.UTF_8));
+			} catch (IOException e) {
+				log.error("Error reading call request body", e);
+			}
+		}
+	}
+
+	private void updatePanel() {
+		log.debug("Panel repaint!");
+		assert client.isClientThread() : "updatePanel must be called from the client thread!";
+
+		Set<CrashedStar> stars = new HashSet<>(starCache.getStars());
+		SwingUtilities.invokeLater(() -> panel.setStars(stars));
 	}
 
 
@@ -125,9 +266,13 @@ public class StarHuntPlugin extends Plugin
 	private int despawnStarTick = -1;
 
 	@Subscribe
-	public void onGameStateChange(GameStateChanged event) {
+	public void onGameStateChanged(GameStateChanged event) {
 		if (event.getGameState() == GameState.LOGGED_IN) {
 			gameTick = 0;
+
+			//TODO check whether we are in a world in which a star exists,
+			//TODO if so, display a message in chat! can we make this message clickable and display the hint arrow?
+			//TODO and, if configured, display a hint arrow
 		}
 	}
 
@@ -175,6 +320,8 @@ public class StarHuntPlugin extends Plugin
 		WorldPoint worldPoint = gameObject.getWorldLocation();
 		StarKey starKey = new StarKey(StarPoints.toLocation(worldPoint), client.getWorld());
 
+		log.debug("A " + starTier + " star just despawned at location: " + worldPoint + ".");
+
 		if (playerInRange(worldPoint)) {
 			if (starTier == StarTier.SIZE_1) {
 				//the star was mined out completely, or it poofed at t1.
@@ -187,8 +334,6 @@ public class StarHuntPlugin extends Plugin
 				despawnStarTick = gameTick;
 			}
 		}
-
-		log.debug("A " + starTier + " star just despawned at location: " + worldPoint + ".");
 	}
 
 	@Subscribe
@@ -200,6 +345,8 @@ public class StarHuntPlugin extends Plugin
 		WorldPoint worldPoint = gameObject.getWorldLocation();
 		StarKey starKey = new StarKey(StarPoints.toLocation(worldPoint), client.getWorld());
 
+		log.debug("A " + starTier + " star spawned at location: " + worldPoint + ".");
+
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
@@ -208,8 +355,6 @@ public class StarHuntPlugin extends Plugin
 			//a star has degraded
 			reportStarUpdate(knownStar, starTier, true);
 		}
-
-		log.debug("A " + starTier + " star spawned at location: " + worldPoint + ".");
 	}
 
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
