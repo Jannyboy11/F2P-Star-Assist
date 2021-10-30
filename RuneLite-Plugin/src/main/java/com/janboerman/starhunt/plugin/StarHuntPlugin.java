@@ -17,6 +17,7 @@ import net.runelite.api.GameObject;
 import net.runelite.api.GameState;
 import net.runelite.api.Tile;
 import net.runelite.api.World;
+import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
@@ -168,10 +169,10 @@ public class StarHuntPlugin extends Plugin {
 	//
 
 	public void reportStarNew(CrashedStar star, boolean broadcast) {
-		log.debug("Found new star!");
+		log.debug("reporting new star: " + star);
+
 		boolean isNew = starCache.add(star);
 		if (isNew) {
-			log.debug("Found a new star: " + star + "! Updating panel...");
 			updatePanel();
 		}
 
@@ -191,6 +192,8 @@ public class StarHuntPlugin extends Plugin {
 	}
 
 	public void reportStarUpdate(CrashedStar star, StarTier newTier, boolean broadcast) {
+		log.debug("reporting star update: " + star + "->" + newTier);
+
 		if (star.getTier() == newTier) return;
 
 		star.setTier(newTier);
@@ -211,6 +214,8 @@ public class StarHuntPlugin extends Plugin {
 	}
 
 	public void reportStarGone(StarKey starKey, boolean broadcast) {
+		log.debug("reporting star gone: " + starKey);
+
 		starCache.remove(starKey);
 		updatePanel();
 
@@ -270,9 +275,17 @@ public class StarHuntPlugin extends Plugin {
 		if (event.getGameState() == GameState.LOGGED_IN) {
 			gameTick = 0;
 
-			//TODO check whether we are in a world in which a star exists,
-			//TODO if so, display a message in chat! can we make this message clickable and display the hint arrow?
-			//TODO and, if configured, display a hint arrow
+			clientThread.invokeLater(() -> {
+				for (CrashedStar star : starCache.getStars()) {
+					if (star.getWorld() == client.getWorld()) {
+						client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "A star has crashed in this world!", null);
+						if (config.hintArrowEnabled()) {
+							client.setHintArrow(StarPoints.fromLocation(star.getLocation()));
+						}
+						break;
+					}
+				}
+			});
 		}
 	}
 
@@ -284,7 +297,8 @@ public class StarHuntPlugin extends Plugin {
 			assert despawnStarTier.compareTo(StarTier.SIZE_1) > 0 : "despawnStarTier must never be never size 1!";
 
 			WorldPoint starPoint = StarPoints.fromLocation(despawnStarKey.getLocation());
-			Tile tile = client.getScene().getTiles()[starPoint.getPlane()][starPoint.getX()][starPoint.getY()];
+			LocalPoint localStarPoint = LocalPoint.fromWorld(client, starPoint);
+			Tile tile = client.getScene().getTiles()[starPoint.getPlane()][localStarPoint.getSceneX()][localStarPoint.getSceneY()];
 
 			StarTier newTier = null;
 			for (GameObject gameObject : tile.getGameObjects()) {
@@ -350,7 +364,7 @@ public class StarHuntPlugin extends Plugin {
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getUsername())), true);
+			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName())), true);
 		} else {
 			//a star has degraded
 			reportStarUpdate(knownStar, starTier, true);
