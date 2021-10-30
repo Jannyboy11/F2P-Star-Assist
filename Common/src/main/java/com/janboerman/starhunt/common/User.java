@@ -1,6 +1,6 @@
 package com.janboerman.starhunt.common;
 
-public interface User {
+public interface User /*permits RunescapeUser, DiscordUser, UnknownUser*/ {
 
     public static User unknown() {
         return UnknownUser.INSTANCE;

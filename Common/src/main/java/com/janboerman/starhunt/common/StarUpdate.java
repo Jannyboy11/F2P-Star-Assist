@@ -36,7 +36,7 @@ public final class StarUpdate {
 
     @Override
     public int hashCode() {
-        return Objects.hash(location, world, tier);
+        return Objects.hash(getLocation(), getWorld(), getTier());
     }
 
     @Override

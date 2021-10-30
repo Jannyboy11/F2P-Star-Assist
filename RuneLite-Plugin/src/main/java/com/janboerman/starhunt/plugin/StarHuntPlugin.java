@@ -76,18 +76,29 @@ public class StarHuntPlugin extends Plugin
 
 	//
 	// ======= Star Cache Bookkeeping =======
-	// TODO make sure to post updates to the web server, if configured
 
-	public void reportStarNew(CrashedStar star) {
+	public void reportStarNew(CrashedStar star, boolean broadcast) {
 		starCache.add(star);
+
+		if (broadcast && config.httpConnectionEnabled()) {
+			starClient.sendStar(star);
+		}
 	}
 
-	public void reportStarUpdate(CrashedStar star, StarTier newTier) {
+	public void reportStarUpdate(CrashedStar star, StarTier newTier, boolean broadcast) {
 		star.setTier(newTier);
+
+		if (broadcast && config.httpConnectionEnabled()) {
+			starClient.updateStar(star.getKey(), newTier);
+		}
 	}
 
-	public void reportStarGone(StarKey starKey) {
+	public void reportStarGone(StarKey starKey, boolean broadcast) {
 		starCache.remove(starKey);
+
+		if (broadcast && config.httpConnectionEnabled()) {
+			starClient.deleteStar(starKey);
+		}
 	}
 
 
@@ -141,7 +152,7 @@ public class StarHuntPlugin extends Plugin
 			}
 
 			if (newTier == null) {
-				reportStarGone(despawnStarKey);
+				reportStarGone(despawnStarKey, true);
 			}
 
 			despawnStarKey = null;
@@ -167,7 +178,7 @@ public class StarHuntPlugin extends Plugin
 		if (playerInRange(worldPoint)) {
 			if (starTier == StarTier.SIZE_1) {
 				//the star was mined out completely, or it poofed at t1.
-				reportStarGone(starKey);
+				reportStarGone(starKey, true);
 			} else {
 				//it either degraded one tier, or disintegrated completely (poofed).
 				//check whether a new star exists in onGameTick.
@@ -192,10 +203,10 @@ public class StarHuntPlugin extends Plugin
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getUsername())));
+			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getUsername())), true);
 		} else {
 			//a star has degraded
-			reportStarUpdate(knownStar, starTier);
+			reportStarUpdate(knownStar, starTier, true);
 		}
 
 		log.debug("A " + starTier + " star spawned at location: " + worldPoint + ".");

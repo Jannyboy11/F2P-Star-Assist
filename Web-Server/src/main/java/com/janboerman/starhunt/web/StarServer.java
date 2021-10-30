@@ -12,6 +12,8 @@ public class StarServer {
     public static void main(String[] args) throws Exception {
         Logger logger = Logger.getLogger("star server");
 
+        //TODO get port number from option command line arguments (use an OptionParser)
+        //TODO otherwise fall back to 8080
         final int port = 8080;
 
         Server server = new Server(port);

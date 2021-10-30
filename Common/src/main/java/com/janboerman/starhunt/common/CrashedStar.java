@@ -8,8 +8,8 @@ public final class CrashedStar implements Comparable<CrashedStar> {
 
     private static final Comparator<CrashedStar> COMPARATOR = Comparator
             .comparing(CrashedStar::getTier)
-            .thenComparing(CrashedStar::getLocation)
-            .thenComparing(CrashedStar::getWorld);
+            .thenComparing(CrashedStar::getWorld)
+            .thenComparing(CrashedStar::getLocation);
 
     private final StarLocation location;
     private final int world;
@@ -39,6 +39,12 @@ public final class CrashedStar implements Comparable<CrashedStar> {
         return tier;
     }
 
+    public synchronized void setTier(StarTier lowerTier) {
+        assert lowerTier != null : "tier cannot be null";
+        assert lowerTier.compareTo(tier) < 0 : "lower tier (" + lowerTier + ") must be lower than the existing tier (" + tier + ")";
+        tier = lowerTier;
+    }
+
     public StarLocation getLocation() {
         return location;
     }
@@ -57,12 +63,6 @@ public final class CrashedStar implements Comparable<CrashedStar> {
 
     public StarKey getKey() {
         return new StarKey(getLocation(), getWorld());
-    }
-
-    public synchronized void setTier(StarTier lowerTier) {
-        assert lowerTier != null : "tier cannot be null";
-        assert lowerTier.compareTo(tier) < 0 : "lower tier (" + lowerTier + ") must be lower than the existing tier (" + tier + ")";
-        tier = lowerTier;
     }
 
     @Override

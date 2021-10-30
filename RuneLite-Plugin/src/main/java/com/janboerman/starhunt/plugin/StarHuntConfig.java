@@ -37,12 +37,34 @@ public interface StarHuntConfig extends Config
 	@ConfigItem(
 			position = 1,
 			keyName = "url",
-			name = "Discord Bot Endpoint",
+			name = "Webserver URL",
 			description = "The address of the webserver with which star locations are shared.",
 			section = HTTP_SETTINGS_SECTION
 	)
 	default String httpUrl() {
 		return "http://localhost:8080";
+	}
+
+	@ConfigItem(
+			position = 2,
+			keyName = "share pvp-world stars",
+			name = "Share PVP-world stars",
+			description = "Whether to send stars in PVP-worlds",
+			section = HTTP_SETTINGS_SECTION
+	)
+	default boolean sharePvpWorldStars() {
+		return false;
+	}
+
+	@ConfigItem(
+			position = 3,
+			keyName = "share wilderness stars",
+			name = "Share Wilderness stars",
+			description = "Whether to send stars in the Wilderness",
+			section = HTTP_SETTINGS_SECTION
+	)
+	default boolean shareWildernessStars() {
+		return false;
 	}
 
 	//																							\\
@@ -64,7 +86,7 @@ public interface StarHuntConfig extends Config
 	//																							\\
 
 	@ConfigItem(
-			position = 2,
+			position = 4,
 			keyName = "hint enabled",
 			name = "Enable map hints",
 			description = "Whether to display an arrow that hints to the target location",
@@ -94,7 +116,7 @@ public interface StarHuntConfig extends Config
 	//																							\\
 
 	@ConfigItem(
-			position = 3,
+			position = 5,
 			keyName = "friends chat",
 			name = "Enable friends chat integration",
 			description = "Analyze friends chat for possible star calls",
@@ -105,7 +127,7 @@ public interface StarHuntConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 4,
+			position = 6,
 			keyName = "private chat",
 			name = "Enable private chat integration",
 			description = "Analyze private chat for possible star calls",
@@ -116,7 +138,7 @@ public interface StarHuntConfig extends Config
 	}
 
 	@ConfigItem(
-			position = 5,
+			position = 7,
 			keyName = "clan chat",
 			name = "Enable clan chat integration",
 			description = "Analyze clan chat for possible star calls",
@@ -128,5 +150,8 @@ public interface StarHuntConfig extends Config
 
 	//																							\\
 	// ======================================================================================== \\
+
+	//TODO tile markers for star landing sites
+	//TODO tile markers for hopping locations for (duel arena, al kharid mine) and (rimmington mine, crafting guild)
 
 }

@@ -2,10 +2,10 @@ package com.janboerman.starhunt.common;
 
 public enum StarLocation {
 
-    WILDY_RUNITE_ROCKS,
-    WILDY_CENTRE_MINE,
-    WILDY_SOUTH_WEST_MINE,
-    WILDY_SOUTH_MINE,
+    WILDERNESS_RUNITE_MINE,
+    WILDERNESS_CENTRE_MINE,
+    WILDERNESS_SOUTH_WEST_MINE,
+    WILDERNESS_SOUTH_MINE,
 
     DWARVEN_MINE,
     MINING_GUILD,
@@ -22,7 +22,7 @@ public enum StarLocation {
 
     AL_KHARID_MINE,
     AL_KHARID_BANK,
-    DUELLING_ARENA,
+    DUEL_ARENA,
 
     CRANDOR_NORTH_MINE,
     CRANDOR_SOUTH_MINE,

@@ -33,7 +33,10 @@ class StarHandler extends AbstractHandler {
 
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        switch(target) {
+        //TODO rate limit
+        //TODO authentication??
+
+        switch (target) {
             case EndPoints.ALL_STARS: receiveRequestStars(request, response); baseRequest.setHandled(true); break;
             case EndPoints.SEND_STAR: receiveSendStar(request, response); baseRequest.setHandled(true); break;
             case EndPoints.UPDATE_STAR: receiveUpdateStar(request, response); baseRequest.setHandled(true); break;
@@ -45,6 +48,7 @@ class StarHandler extends AbstractHandler {
     private void receiveRequestStars(HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch (request.getMethod()) {
             case "GET":
+                //response
                 response.setContentType(APPLICATION_JSON);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write(StarJson.crashedStarsJson(starDatabase.getStars()).toString());
@@ -103,9 +107,11 @@ class StarHandler extends AbstractHandler {
                         //apply update
                         if (star != null) {
                             if (star.getTier().compareTo(newTier) > 0) {
+                                //only update if the currently known tier is higher than the newly-received tier.
                                 star.setTier(newTier);
                             }
                         } else {
+                            //this shouldn't really happen.
                             star = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
                             starDatabase.add(star);
                         }
