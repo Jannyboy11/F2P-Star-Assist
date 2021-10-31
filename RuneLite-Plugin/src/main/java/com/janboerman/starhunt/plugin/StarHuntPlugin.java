@@ -254,27 +254,40 @@ public class StarHuntPlugin extends Plugin {
 
 	private static final int DETECTION_DISTANCE = 25;
 
-	private boolean playerInRange(WorldPoint starLocation) {
-		WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
-		int playerX = playerLocation.getX();
-		int playerY = playerLocation.getY();
-		int starX = starLocation.getX();
-		int starY = starLocation.getY();
-		return playerLocation.getPlane() == starLocation.getPlane()
-				&& starX - DETECTION_DISTANCE <= playerX && playerX <= starX + DETECTION_DISTANCE
-				&& starY - DETECTION_DISTANCE <= playerY && playerY <= starY + DETECTION_DISTANCE;
+	private boolean playerInStarRange(WorldPoint starLocation) {
+		return playerInRange(starLocation, DETECTION_DISTANCE);
 	}
 
-	private int gameTick = 0;
-	private StarKey despawnStarKey = null;
-	private StarTier despawnStarTier = null;
-	private int despawnStarTick = -1;
+	private boolean playerInRange(WorldPoint worldPoint, int distance) {
+		return inManhattanRange(client.getLocalPlayer().getWorldLocation(), worldPoint, distance);
+	}
+
+	private static boolean inManhattanRange(WorldPoint playerLoc, WorldPoint targetLoc, int distance) {
+		int playerX = playerLoc.getX();
+		int playerY = playerLoc.getY();
+		int starX = targetLoc.getX();
+		int starY = targetLoc.getY();
+		return playerLoc.getPlane() == targetLoc.getPlane()
+				&& starX - distance <= playerX && playerX <= starX + distance
+				&& starY - distance <= playerY && playerY <= starY + distance;
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event) {
+		//TODO, if the player comes near a star location, check whether a star exists in cache
+		//TODO if the star is in cache, but not in the world, remove it from the cache and update the panel
+		//TODO also remove the hint arrow (if the star is present, and also if it is absent)
+
+		for (CrashedStar star : starCache.getStars()) {
+			if (client.getWorld() == star.getWorld() && playerInStarRange(StarPoints.fromLocation(star.getLocation()))) {
+
+			}
+		}
+	}
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event) {
 		if (event.getGameState() == GameState.LOGGED_IN) {
-			gameTick = 0;
-
 			clientThread.invokeLater(() -> {
 				for (CrashedStar star : starCache.getStars()) {
 					if (star.getWorld() == client.getWorld()) {
@@ -287,47 +300,6 @@ public class StarHuntPlugin extends Plugin {
 				}
 			});
 		}
-	}
-
-	//TODO we may be able to get rid of all of this. (or rather, move this to GameObjectDespawned)
-	//called AFTER all packets have processed (so, after GameObjectDespawned and GameObjectSpawned I suppose)
-	@Subscribe
-	public void onGameTick(GameTick event) {
-		if (despawnStarKey != null && despawnStarKey.getWorld() == client.getWorld() && gameTick == despawnStarTick) {
-			assert despawnStarTier != null : "despawnStarKey is not null, but despawnStarTier is!";
-			assert despawnStarTier.compareTo(StarTier.SIZE_1) > 0 : "despawnStarTier must never be never size 1!";
-
-			WorldPoint starPoint = StarPoints.fromLocation(despawnStarKey.getLocation());
-			LocalPoint localStarPoint = LocalPoint.fromWorld(client, starPoint);
-			Tile tile = client.getScene().getTiles()[starPoint.getPlane()][localStarPoint.getSceneX()][localStarPoint.getSceneY()];
-
-			StarTier newTier = null;
-			for (GameObject gameObject : tile.getGameObjects()) {
-				if (gameObject != null) {
-					StarTier tier = StarIds.getTier(gameObject.getId());
-					if (tier == despawnStarTier.oneLess()) {
-						//a new star exists
-						newTier = tier;
-						break;
-					}
-				}
-			}
-
-			if (newTier == null) {
-				//the star has poofed
-				reportStarGone(despawnStarKey, true);
-			} else {
-				//the star has degraded
-				reportStarUpdate(despawnStarKey, newTier, true);
-			}
-
-			despawnStarKey = null;
-			despawnStarTier = null;
-			despawnStarTick = -1;
-		}
-
-		gameTick += 1;	//This can't ever overflow. One would have to play for 113 years straight!
-		assert gameTick > 0 : "Impossibru!";
 	}
 
 	@Subscribe
@@ -343,18 +315,39 @@ public class StarHuntPlugin extends Plugin {
 
 		log.debug("A " + starTier + " star just despawned at location: " + worldPoint + ".");
 
-		if (playerInRange(worldPoint)) {
+		if (playerInStarRange(worldPoint)) {
 			if (starTier == StarTier.SIZE_1) {
 				//the star was mined out completely, or it poofed at t1.
 				reportStarGone(starKey, true);
 			} else {
 				//it either degraded one tier, or disintegrated completely (poofed).
-				//check whether a new star exists in onGameTick.
-				despawnStarKey = starKey;
-				despawnStarTier = starTier;
-				despawnStarTick = gameTick;
+				//check whether a new star exists in the next game tick
+				clientThread.invokeLater(() -> {
+					if (client.getGameState() == GameState.LOGGED_IN && playerInStarRange(worldPoint)) {
+						LocalPoint localStarPoint = LocalPoint.fromWorld(client, worldPoint);
+						Tile tile = client.getScene().getTiles()[worldPoint.getPlane()][localStarPoint.getSceneX()][localStarPoint.getSceneY()];
 
-				//TODO use ClientThread.invokeLater instead! :D
+						StarTier newTier = null;
+						for (GameObject go : tile.getGameObjects()) {
+							if (go != null) {
+								StarTier tier = StarIds.getTier(go.getId());
+								if (tier == starTier.oneLess()) {
+									//a new star exists
+									newTier = tier;
+									break;
+								}
+							}
+						}
+
+						if (newTier == null) {
+							//the star has poofed
+							reportStarGone(starKey, true);
+						} else {
+							//the star has degraded
+							reportStarUpdate(starKey, newTier, true);
+						}
+					}
+				});
 			}
 		}
 	}
@@ -378,10 +371,6 @@ public class StarHuntPlugin extends Plugin {
 	}
 
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
-
-	//TODO, if the player comes near a star location, check whether a star exists in cache
-	//TODO if the star is in cache, but not in the world, remove it from the cache and update the panel
-	//TODO also remove the hint arrow (if the star is present, and also if it is absent)
 
 }
 
