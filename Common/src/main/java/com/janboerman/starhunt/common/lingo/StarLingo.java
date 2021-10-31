@@ -14,6 +14,25 @@ public class StarLingo {
     private StarLingo() {
     }
 
+    /**
+     * Try to get the world from a string of text. Note that the returned number may not be an existing world.
+     * @param text the input
+     * @return the world, or -1 if the text didn't contain a world
+     */
+    public static int interpretWorld(String text) {
+        Matcher matcher = WORLD_PATTERN.matcher(text);
+        if (matcher.matches()) {
+            String world = matcher.group("world");
+            return Integer.parseInt(world);
+        }
+        return -1;
+    }
+
+    /**
+     * Try to get the tier of the star.
+     * @param text the input
+     * @return the star's tier, or null if the tier could not be recognised
+     */
     public static StarTier interpretTier(String text) {
         Matcher matcher = TIER_PATTERN.matcher(text);
         if (matcher.matches()) {
@@ -34,19 +53,10 @@ public class StarLingo {
     }
 
     /**
-     * Try to get the world from a string of text. Note that the returned number may not be an existing world.
+     * Try to get the location from a string of text.
      * @param text the input
-     * @return the world, or -1 if the text didn't contain a world
+     * @return the star's location, or null if the location couldn't be recognised
      */
-    public static int interpretWorld(String text) {
-        Matcher matcher = WORLD_PATTERN.matcher(text);
-        if (matcher.matches()) {
-            String world = matcher.group("world");
-            return Integer.parseInt(world);
-        }
-        return -1;
-    }
-
     public static StarLocation interpretLocation(String text) {
         //wildy
         if (containsAnyIgnoreCase(text, "wildy", "wilderness"))
@@ -55,7 +65,7 @@ public class StarLingo {
             else if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hopgoblins"))
                 return StarLocation.WILDERNESS_CENTRE_MINE;
             else if (containsAnyIgnoreCase(text, "dark", "warrior", "fortress")
-                    || (containsIgnoreCase(text, "south") && containsIgnoreCase(text, "west")))
+                    || containsAllIgnoreCase(text, "south", "west"))
                 return StarLocation.WILDERNESS_SOUTH_WEST_MINE;
             else if ((containsIgnoreCase(text, "south") && !containsIgnoreCase(text, "west"))
                     || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy"))
@@ -92,13 +102,13 @@ public class StarLingo {
                 return StarLocation.VARROCK_SOUTH_EAST_MINE;
             else
                 return StarLocation.VARROCK_AUBURY;
-        else if (containsIgnoreCase(text, "vsw"))
+        else if (containsAnyIgnoreCase(text, "vsw", "champions guild"))
             return StarLocation.VARROCK_SOUTH_WEST_MINE;
         else if (containsIgnoreCase(text, "vse"))
             return StarLocation.VARROCK_SOUTH_EAST_MINE;
 
         //al kharid, duel arena
-        if (containsIgnoreCase(text, "al") && containsIgnoreCase(text, "kharid"))
+        if (containsAllIgnoreCase(text, "al", "kharid"))
             if (containsIgnoreCase(text, "mine"))
                 return StarLocation.AL_KHARID_MINE;
             else if (containsIgnoreCase(text, "bank"))
@@ -118,13 +128,18 @@ public class StarLingo {
             else
                 return StarLocation.CORSAIR_COVE_RESOURCE_AREA;
 
-        //not a star location
+        //could not recognise location
         return null;
     }
 
     public static boolean containsAnyIgnoreCase(String string, String... lookups) {
         for (String lookup : lookups) if (containsIgnoreCase(string, lookup)) return true;
         return false;
+    }
+
+    public static boolean containsAllIgnoreCase(String string, String... lookups) {
+        for (String lookup : lookups) if (!containsIgnoreCase(string, lookup)) return false;
+        return true;
     }
 
     public static boolean containsIgnoreCase(String string, String lookup) {

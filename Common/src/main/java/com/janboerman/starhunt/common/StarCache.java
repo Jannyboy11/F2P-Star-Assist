@@ -3,6 +3,9 @@ package com.janboerman.starhunt.common;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Cache;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +41,13 @@ public class StarCache {
     }
 
     public CrashedStar get(StarKey key) {
-        return cache.getIfPresent(key);
+        CrashedStar crashedStar = cache.getIfPresent(key);
+        if (crashedStar == null /*does not exist*/
+                || crashedStar.getDetectedAt().isBefore(Instant.now().minus(2, ChronoUnit.HOURS))) /*more than two hours ago*/ {
+            return null;
+        } else {
+            return crashedStar;
+        }
     }
 
     public void forceAdd(CrashedStar star) {
@@ -46,7 +55,7 @@ public class StarCache {
     }
 
     public boolean remove(StarKey starKey) {
-        boolean contains = cache.getIfPresent(starKey) != null;
+        boolean contains = get(starKey) != null;
         cache.invalidate(starKey);
         return contains;
     }

@@ -8,8 +8,10 @@ import com.janboerman.starhunt.common.CrashedStar;
 import com.janboerman.starhunt.common.RunescapeUser;
 import com.janboerman.starhunt.common.StarCache;
 import com.janboerman.starhunt.common.StarKey;
+import com.janboerman.starhunt.common.StarLocation;
 import com.janboerman.starhunt.common.StarTier;
 
+import com.janboerman.starhunt.common.lingo.StarLingo;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
@@ -19,6 +21,7 @@ import net.runelite.api.Tile;
 import net.runelite.api.World;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
@@ -143,7 +146,6 @@ public class StarHuntPlugin extends Plugin {
 		if (config.hintArrowEnabled()) {
 			WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
 			clientThread.invoke(() -> client.setHintArrow(starPoint));
-			//TODO this int arrow should be cleared once the player arrives at the star
 		}
 	}
 
@@ -272,15 +274,35 @@ public class StarHuntPlugin extends Plugin {
 				&& starY - distance <= playerY && playerY <= starY + distance;
 	}
 
+	private static StarTier getStar(Tile tile) {
+		for (GameObject gameObject : tile.getGameObjects()) {
+			if (gameObject != null) {
+				StarTier starTier = StarIds.getTier(gameObject.getId());
+				if (starTier != null) return starTier;
+			}
+		}
+		return null;
+	}
+
 	@Subscribe
 	public void onGameTick(GameTick event) {
-		//TODO, if the player comes near a star location, check whether a star exists in cache
-		//TODO if the star is in cache, but not in the world, remove it from the cache and update the panel
-		//TODO also remove the hint arrow (if the star is present, and also if it is absent)
-
 		for (CrashedStar star : starCache.getStars()) {
-			if (client.getWorld() == star.getWorld() && playerInStarRange(StarPoints.fromLocation(star.getLocation()))) {
+			if (client.getWorld() == star.getWorld()) {
+				WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
+				if (starPoint != null && playerInStarRange(starPoint)) {
+					LocalPoint localPoint = LocalPoint.fromWorld(client, starPoint);
+					Tile tile = client.getScene().getTiles()[starPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
+					StarTier starTier = getStar(tile);
+					if (starTier == null) {
+						//a star that was in the cache is no longer there.
+						reportStarGone(star.getKey(), true);
+					}
 
+					if (playerInRange(starPoint, 10) && starPoint.equals(client.getHintArrowPoint())) {
+						//if the player got withing a range of 10, clear the arrow.
+						client.clearHintArrow();
+					}
+				}
 			}
 		}
 	}
@@ -372,9 +394,67 @@ public class StarHuntPlugin extends Plugin {
 
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
 
-}
+	private boolean isWorld(int world) {
+		WorldResult worldResult = worldService.getWorlds();
+		if (worldResult == null) return false;
+		return worldResult.findWorld(world) != null;
+	}
 
-//TODO listen on friends chat message event (configurable),
-//TODO listen to private chat message event (configurable),
-//TODO listen to clan chat message event (configurable),
-//TODO detect a CrashedStar instance from the message
+	@Subscribe
+	public void onChatMessage(ChatMessage event) {
+		String message = event.getMessage();
+
+		StarLocation location;
+		int world;
+		StarTier tier;
+
+		switch (event.getType()) {
+			case FRIENDSCHAT:
+				if (config.interpretFriendsChat()) {
+					if ((tier = StarLingo.interpretTier(message)) != null
+							&& (location = StarLingo.interpretLocation(message)) != null
+							&& (world = StarLingo.interpretWorld(message)) != -1
+							&& isWorld(world)) {
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						reportStarNew(star, true);
+					}
+				}
+				break;
+			case CLAN_CHAT:
+				if (config.interpretClanChat()) {
+					if ((tier = StarLingo.interpretTier(message)) != null
+							&& (location = StarLingo.interpretLocation(message)) != null
+							&& (world = StarLingo.interpretWorld(message)) != -1
+							&& isWorld(world)) {
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						reportStarNew(star, true);
+					}
+				}
+				break;
+			case PRIVATECHAT:
+			case MODPRIVATECHAT:
+				if (config.interpretPrivateChat()) {
+					if ((tier = StarLingo.interpretTier(message)) != null
+							&& (location = StarLingo.interpretLocation(message)) != null
+							&& (world = StarLingo.interpretWorld(message)) != -1
+							&& isWorld(world)) {
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						reportStarNew(star, true);
+					}
+				}
+				break;
+			case PUBLICCHAT:
+			case MODCHAT:
+				if (config.interpretPublicChat()) {
+					if ((tier = StarLingo.interpretTier(message)) != null
+							&& (location = StarLingo.interpretLocation(message)) != null
+							&& (world = StarLingo.interpretWorld(message)) != -1
+							&& isWorld(world)) {
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						reportStarNew(star, true);
+					}
+				}
+				break;
+		}
+	}
+}

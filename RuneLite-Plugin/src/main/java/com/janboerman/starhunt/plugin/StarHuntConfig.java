@@ -100,8 +100,7 @@ public interface StarHuntConfig extends Config {
 
 
 	// =================================== Chat Integration ===================================	\\
-	//
-	//
+	//																							\\
 
 	@ConfigSection(
 			name = "Chat Integration Settings",
@@ -143,7 +142,18 @@ public interface StarHuntConfig extends Config {
 			description = "Analyze clan chat for possible star calls",
 			section = CHAT_INTEGRATION
 	)
-	default boolean interpretClanChat(){
+	default boolean interpretClanChat() {
+		return false;
+	}
+
+	@ConfigItem(
+			position = 8,
+			keyName = "public chat",
+			name = "Enable public chat integration",
+			description = "Analyze public chat for possible star calls",
+			section = CHAT_INTEGRATION
+	)
+	default boolean interpretPublicChat() {
 		return false;
 	}
 
