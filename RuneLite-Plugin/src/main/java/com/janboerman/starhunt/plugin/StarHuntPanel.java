@@ -20,7 +20,7 @@ import java.util.List;
 public class StarHuntPanel extends PluginPanel {
 
     private static final JPanel NO_STARS_PANEL = new JPanel(); static {
-        JLabel text = new JLabel("There are currently no known stars");
+        JLabel text = new JLabel("There are currently no known stars.");
         text.setFont(FontManager.getRunescapeSmallFont());
         NO_STARS_PANEL.add(text);
     }
@@ -35,7 +35,7 @@ public class StarHuntPanel extends PluginPanel {
 
         setLayout(new GridLayout(0, 1));
 
-
+        //TODO a refresh button?
     }
 
     public void setStars(Collection<CrashedStar> starList) {
@@ -69,7 +69,7 @@ public class StarHuntPanel extends PluginPanel {
             setLayout(new BorderLayout());
             setBorder(new EmptyBorder(2, 0, 2, 0));
 
-            setToolTipText("Click to hop to this world.");
+            setToolTipText("Double click to hop to this world.");
 
             String text = "T" + star.getTier().getSize() + " W" + star.getWorld() + " " + star.getLocation();   //TODO friendlier-name for the location?
             JLabel textLabel = new JLabel(text);

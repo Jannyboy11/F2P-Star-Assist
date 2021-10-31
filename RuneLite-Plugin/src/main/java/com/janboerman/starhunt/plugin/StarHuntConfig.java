@@ -30,7 +30,7 @@ public interface StarHuntConfig extends Config {
 			section = HTTP_SETTINGS_SECTION
 	)
 	default boolean httpConnectionEnabled() {
-		return true;
+		return false;
 	}
 
 	@ConfigItem(

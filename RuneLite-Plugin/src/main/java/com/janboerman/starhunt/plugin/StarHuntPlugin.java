@@ -24,7 +24,6 @@ import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.callback.ClientThread;
-import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.WorldService;
@@ -92,7 +91,7 @@ public class StarHuntPlugin extends Plugin {
 
 		clientToolbar.addNavigation(navButton);
 
-		updateStarList();
+		fetchStarList();
 
 		log.info("F2P Star Hunt started!");
 	}
@@ -104,7 +103,7 @@ public class StarHuntPlugin extends Plugin {
 		log.info("F2P Star Hunt stopped!");
 	}
 
-	public void updateStarList() {
+	public void fetchStarList() {
 		if (config.httpConnectionEnabled()) {
 			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars();
 			starFuture.whenCompleteAsync((stars, ex) -> {
@@ -191,9 +190,10 @@ public class StarHuntPlugin extends Plugin {
 		}
 	}
 
-	public void reportStarUpdate(CrashedStar star, StarTier newTier, boolean broadcast) {
-		log.debug("reporting star update: " + star + "->" + newTier);
+	public void reportStarUpdate(StarKey starKey, StarTier newTier, boolean broadcast) {
+		log.debug("reporting star update: " + starKey + "->" + newTier);
 
+		CrashedStar star = starCache.get(starKey);
 		if (star.getTier() == newTier) return;
 
 		star.setTier(newTier);
@@ -289,6 +289,7 @@ public class StarHuntPlugin extends Plugin {
 		}
 	}
 
+	//TODO we may be able to get rid of all of this. (or rather, move this to GameObjectDespawned)
 	//called AFTER all packets have processed (so, after GameObjectDespawned and GameObjectSpawned I suppose)
 	@Subscribe
 	public void onGameTick(GameTick event) {
@@ -302,16 +303,22 @@ public class StarHuntPlugin extends Plugin {
 
 			StarTier newTier = null;
 			for (GameObject gameObject : tile.getGameObjects()) {
-				StarTier tier = StarIds.getTier(gameObject.getId());
-				if (tier == despawnStarTier.oneLess()) {
-					//a new star exists
-					newTier = tier;
-					break;
+				if (gameObject != null) {
+					StarTier tier = StarIds.getTier(gameObject.getId());
+					if (tier == despawnStarTier.oneLess()) {
+						//a new star exists
+						newTier = tier;
+						break;
+					}
 				}
 			}
 
 			if (newTier == null) {
+				//the star has poofed
 				reportStarGone(despawnStarKey, true);
+			} else {
+				//the star has degraded
+				reportStarUpdate(despawnStarKey, newTier, true);
 			}
 
 			despawnStarKey = null;
@@ -346,6 +353,8 @@ public class StarHuntPlugin extends Plugin {
 				despawnStarKey = starKey;
 				despawnStarTier = starTier;
 				despawnStarTick = gameTick;
+
+				//TODO use ClientThread.invokeLater instead! :D
 			}
 		}
 	}
@@ -365,13 +374,14 @@ public class StarHuntPlugin extends Plugin {
 		if (knownStar == null) {
 			//we found a new star
 			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName())), true);
-		} else {
-			//a star has degraded
-			reportStarUpdate(knownStar, starTier, true);
 		}
 	}
 
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
+
+	//TODO, if the player comes near a star location, check whether a star exists in cache
+	//TODO if the star is in cache, but not in the world, remove it from the cache and update the panel
+	//TODO also remove the hint arrow (if the star is present, and also if it is absent)
 
 }
 
