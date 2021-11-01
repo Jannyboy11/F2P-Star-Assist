@@ -87,7 +87,7 @@ public interface StarHuntConfig extends Config {
 	@ConfigItem(
 			position = 4,
 			keyName = "hint enabled",
-			name = "Enable map hints",
+			name = "Enable arrow hints",
 			description = "Whether to display an arrow that hints to the target location",
 			section = HINT_ARROW
 	)
@@ -121,7 +121,7 @@ public interface StarHuntConfig extends Config {
 			section = CHAT_INTEGRATION
 	)
 	default boolean interpretFriendsChat() {
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
@@ -132,7 +132,7 @@ public interface StarHuntConfig extends Config {
 			section = CHAT_INTEGRATION
 	)
 	default boolean interpretPrivateChat() {
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
@@ -143,7 +143,7 @@ public interface StarHuntConfig extends Config {
 			section = CHAT_INTEGRATION
 	)
 	default boolean interpretClanChat() {
-		return false;
+		return true;
 	}
 
 	@ConfigItem(

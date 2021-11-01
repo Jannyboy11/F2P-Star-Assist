@@ -41,7 +41,6 @@ public final class CrashedStar implements Comparable<CrashedStar> {
 
     public synchronized void setTier(StarTier lowerTier) {
         assert lowerTier != null : "tier cannot be null";
-        assert lowerTier.compareTo(tier) < 0 : "lower tier (" + lowerTier + ") must be lower than the existing tier (" + tier + ")";
         tier = lowerTier;
     }
 

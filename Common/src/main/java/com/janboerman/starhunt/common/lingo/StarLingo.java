@@ -57,12 +57,13 @@ public class StarLingo {
      * @param text the input
      * @return the star's location, or null if the location couldn't be recognised
      */
+    //TODO return a Set<StarLocation> instead? then it's possible to return multiple locations if it's ambiguous (e.g. just 'Crandor')
     public static StarLocation interpretLocation(String text) {
         //wildy
         if (containsAnyIgnoreCase(text, "wildy", "wilderness"))
             if (containsAnyIgnoreCase(text, "rune", "runite", "lava", "maze"))
                 return StarLocation.WILDERNESS_RUNITE_MINE;
-            else if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hopgoblins"))
+            else if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hobgoblins"))
                 return StarLocation.WILDERNESS_CENTRE_MINE;
             else if (containsAnyIgnoreCase(text, "dark", "warrior", "fortress")
                     || containsAllIgnoreCase(text, "south", "west"))
@@ -74,24 +75,24 @@ public class StarLingo {
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven"))
             return StarLocation.DWARVEN_MINE;
-        else if (containsAnyIgnoreCase(text, "falador", "fally", "mining guild"))
+        if (containsAnyIgnoreCase(text, "falador", "fally", "mining guild"))
             return StarLocation.MINING_GUILD;
-        else if (containsIgnoreCase(text, "crafting guild"))
+        if (containsIgnoreCase(text, "crafting guild"))
             return StarLocation.CRAFTING_GUILD;
-        else if (containsIgnoreCase(text, "rim"))
+        if (containsIgnoreCase(text, "rim"))
             return StarLocation.RIMMINGTON_MINE;
 
         //draynor, lumbridge
         if (containsIgnoreCase(text, "draynor"))
             return StarLocation.DRAYNOR_VILLAGE_BANK;
-        else if (containsAnyIgnoreCase(text, "lumbridge", "swamp"))
+        if (containsAnyIgnoreCase(text, "lumbridge", "swamp", "lumby"))
             if (containsIgnoreCase(text, "west"))
                 return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
             else if (containsIgnoreCase(text, "east"))
                 return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
-        else if (containsIgnoreCase(text, "lsw"))
+        if (containsIgnoreCase(text, "lsw"))
             return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
-        else if (containsIgnoreCase(text, "lse"))
+        if (containsIgnoreCase(text, "lse"))
             return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
 
         //varrock
@@ -102,9 +103,9 @@ public class StarLingo {
                 return StarLocation.VARROCK_SOUTH_EAST_MINE;
             else
                 return StarLocation.VARROCK_AUBURY;
-        else if (containsAnyIgnoreCase(text, "vsw", "champions guild"))
+        if (containsAnyIgnoreCase(text, "vsw", "champions guild"))
             return StarLocation.VARROCK_SOUTH_WEST_MINE;
-        else if (containsIgnoreCase(text, "vse"))
+        if (containsIgnoreCase(text, "vse"))
             return StarLocation.VARROCK_SOUTH_EAST_MINE;
 
         //al kharid, duel arena
@@ -117,12 +118,12 @@ public class StarLingo {
             return StarLocation.DUEL_ARENA;
 
         //crandor, corsair cove
-        else if (containsIgnoreCase(text, "crandor"))
+        if (containsIgnoreCase(text, "crandor"))
             if (containsIgnoreCase(text, "north"))
                 return StarLocation.CRANDOR_NORTH_MINE;
             else if (containsIgnoreCase(text, "south"))
                 return StarLocation.CRANDOR_SOUTH_MINE;
-        else if (containsIgnoreCase(text, "corsair"))
+        if (containsIgnoreCase(text, "corsair"))
             if (containsIgnoreCase(text, "bank"))
                 return StarLocation.CORSAIR_COVE_BANK;
             else
@@ -143,7 +144,7 @@ public class StarLingo {
     }
 
     public static boolean containsIgnoreCase(String string, String lookup) {
-        return string.regionMatches(true, 0, lookup, 0, lookup.length());
+        return string.toLowerCase().contains(lookup.toLowerCase());
     }
 
 }

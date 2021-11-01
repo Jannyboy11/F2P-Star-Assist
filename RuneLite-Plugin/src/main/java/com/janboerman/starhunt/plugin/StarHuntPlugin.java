@@ -36,7 +36,6 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.WorldUtil;
-import net.runelite.http.api.worlds.WorldResult;
 import okhttp3.Call;
 import okio.Buffer;
 
@@ -132,7 +131,7 @@ public class StarHuntPlugin extends Plugin {
 		int currentWorld = client.getWorld();
 
 		if (currentWorld != starWorld) {
-			WorldResult worldResult = worldService.getWorlds();
+			net.runelite.http.api.worlds.WorldResult worldResult = worldService.getWorlds();
 			if (worldResult != null) {
 				clientThread.invoke(() -> {
 					World world = rsWorld(worldResult.findWorld(starWorld));
@@ -169,6 +168,15 @@ public class StarHuntPlugin extends Plugin {
 	// ======= Star Cache Bookkeeping =======
 	//
 
+	private boolean shouldBroadcastStar(StarKey starKey) {
+		if (!config.httpConnectionEnabled()) return false;
+
+		net.runelite.http.api.worlds.World w = worldService.getWorlds().findWorld(starKey.getWorld());
+		boolean isPvP = w.getTypes().contains(net.runelite.http.api.worlds.WorldType.PVP);
+		boolean isWilderness = starKey.getLocation().isInWilderness();
+		return (config.sharePvpWorldStars() || !isPvP) && (config.shareWildernessStars() || !isWilderness);
+	}
+
 	public void reportStarNew(CrashedStar star, boolean broadcast) {
 		log.debug("reporting new star: " + star);
 
@@ -177,16 +185,17 @@ public class StarHuntPlugin extends Plugin {
 			updatePanel();
 		}
 
-		if (broadcast && config.httpConnectionEnabled()) {
+		if (broadcast && shouldBroadcastStar(star.getKey())) {
 			CompletableFuture<Optional<CrashedStar>> upToDateStar = starClient.sendStar(star);
 			upToDateStar.whenCompleteAsync((optionalStar, ex) -> {
 				if (ex != null) {
 					logServerError(ex);
-				}
-
-				else if (optionalStar.isPresent()) {
+				} else if (optionalStar.isPresent()) {
 					CrashedStar theStar = optionalStar.get();
-					clientThread.invoke(() -> { starCache.forceAdd(theStar); updatePanel(); });
+					clientThread.invoke(() -> {
+						starCache.forceAdd(theStar);
+						updatePanel();
+					});
 				}
 			});
 		}
@@ -201,7 +210,7 @@ public class StarHuntPlugin extends Plugin {
 		star.setTier(newTier);
 		updatePanel();
 
-		if (broadcast && config.httpConnectionEnabled()) {
+		if (broadcast && shouldBroadcastStar(star.getKey())) {
 			CompletableFuture<CrashedStar> upToDateStar = starClient.updateStar(star.getKey(), newTier);
 			upToDateStar.whenCompleteAsync((theStar, ex) -> {
 				if (ex != null) {
@@ -221,7 +230,7 @@ public class StarHuntPlugin extends Plugin {
 		starCache.remove(starKey);
 		updatePanel();
 
-		if (broadcast && config.httpConnectionEnabled()) {
+		if (broadcast && shouldBroadcastStar(starKey)) {
 			starClient.deleteStar(starKey);
 		}
 	}
@@ -296,10 +305,13 @@ public class StarHuntPlugin extends Plugin {
 					if (starTier == null) {
 						//a star that was in the cache is no longer there.
 						reportStarGone(star.getKey(), true);
+						if (starPoint.equals(client.getHintArrowPoint())) {
+							client.clearHintArrow();
+						}
 					}
 
-					if (playerInRange(starPoint, 10) && starPoint.equals(client.getHintArrowPoint())) {
-						//if the player got withing a range of 10, clear the arrow.
+					else if (playerInRange(starPoint, 4) && starPoint.equals(client.getHintArrowPoint())) {
+						//if the player got withing a range of 4, clear the arrow.
 						client.clearHintArrow();
 					}
 				}
@@ -395,7 +407,7 @@ public class StarHuntPlugin extends Plugin {
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
 
 	private boolean isWorld(int world) {
-		WorldResult worldResult = worldService.getWorlds();
+		net.runelite.http.api.worlds.WorldResult worldResult = worldService.getWorlds();
 		if (worldResult == null) return false;
 		return worldResult.findWorld(world) != null;
 	}

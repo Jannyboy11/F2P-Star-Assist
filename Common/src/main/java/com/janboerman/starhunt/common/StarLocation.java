@@ -29,4 +29,16 @@ public enum StarLocation {
     CORSAIR_COVE_BANK,
     CORSAIR_COVE_RESOURCE_AREA;
 
+    public boolean isInWilderness() {
+        switch (this) {
+            case WILDERNESS_RUNITE_MINE:
+            case WILDERNESS_CENTRE_MINE:
+            case WILDERNESS_SOUTH_WEST_MINE:
+            case WILDERNESS_SOUTH_MINE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
 }

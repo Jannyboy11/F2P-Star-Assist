@@ -51,9 +51,13 @@ public class StarHuntPanel extends PluginPanel {
 
             //re-paint
             for (CrashedStar star : this.starList) {
+                //TODO don't add to the root panel, use a separate panel instead, that itself is added to the root panel.
                 add(new StarRow(star), BorderLayout.SOUTH);
             }
         }
+
+        revalidate();
+        repaint();
     }
 
     private class StarRow extends JPanel {
