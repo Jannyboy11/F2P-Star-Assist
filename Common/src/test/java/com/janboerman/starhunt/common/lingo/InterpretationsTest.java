@@ -25,4 +25,13 @@ public class InterpretationsTest {
         assertEquals(StarTier.SIZE_2, StarLingo.interpretTier(text));
         assertEquals(335, StarLingo.interpretWorld(text));
     }
+
+    @Test
+    public void testVarrock() {
+        String text = "T3 Varrock East W382";
+
+        assertEquals(StarLocation.VARROCK_SOUTH_EAST_MINE, StarLingo.interpretLocation(text));
+        assertEquals(StarTier.SIZE_3, StarLingo.interpretTier(text));
+        assertEquals(382, StarLingo.interpretWorld(text));
+    }
 }

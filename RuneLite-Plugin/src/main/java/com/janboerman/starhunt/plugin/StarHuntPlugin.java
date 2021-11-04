@@ -177,7 +177,7 @@ public class StarHuntPlugin extends Plugin {
 		return (config.sharePvpWorldStars() || !isPvP) && (config.shareWildernessStars() || !isWilderness);
 	}
 
-	public void reportStarNew(CrashedStar star, boolean broadcast) {
+	public void reportStarNew(CrashedStar star, String broadcastToGroup) {
 		log.debug("reporting new star: " + star);
 
 		boolean isNew = starCache.add(star);
@@ -185,7 +185,7 @@ public class StarHuntPlugin extends Plugin {
 			updatePanel();
 		}
 
-		if (broadcast && shouldBroadcastStar(star.getKey())) {
+		if (broadcastToGroup != null && !broadcastToGroup.isEmpty() && shouldBroadcastStar(star.getKey())) {
 			CompletableFuture<Optional<CrashedStar>> upToDateStar = starClient.sendStar(star);
 			upToDateStar.whenCompleteAsync((optionalStar, ex) -> {
 				if (ex != null) {
@@ -400,7 +400,7 @@ public class StarHuntPlugin extends Plugin {
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName())), true);
+			reportStarNew(new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName())), null /*TODO default group*/);
 		}
 	}
 
@@ -428,18 +428,19 @@ public class StarHuntPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
-						reportStarNew(star, true);
+						reportStarNew(star, config.shareCallsReceivedByFriendsChat());
 					}
 				}
 				break;
 			case CLAN_CHAT:
 				if (config.interpretClanChat()) {
+					//if player doesn't have group code, ignore TODO
 					if ((tier = StarLingo.interpretTier(message)) != null
 							&& (location = StarLingo.interpretLocation(message)) != null
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
-						reportStarNew(star, true);
+						reportStarNew(star, config.shareCallsReceivedByClanChat());
 					}
 				}
 				break;
@@ -451,7 +452,7 @@ public class StarHuntPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
-						reportStarNew(star, true);
+						reportStarNew(star, config.shareCallsReceivedByPrivateChat());
 					}
 				}
 				break;
@@ -463,7 +464,7 @@ public class StarHuntPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
-						reportStarNew(star, true);
+						reportStarNew(star, config.shareCallsReceivedByPublicChat());
 					}
 				}
 				break;

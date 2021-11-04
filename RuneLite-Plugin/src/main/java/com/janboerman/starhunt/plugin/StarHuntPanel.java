@@ -80,6 +80,8 @@ public class StarHuntPanel extends PluginPanel {
             textLabel.setFont(FontManager.getRunescapeSmallFont());
             add(textLabel);
 
+            //TODO right-click->remove option (only updates de list visually)
+
             this.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent event) {

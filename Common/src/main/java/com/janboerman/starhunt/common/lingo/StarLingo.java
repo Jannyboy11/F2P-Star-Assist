@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 
 public class StarLingo {
 
-    private static final Pattern TIER_PATTERN = Pattern.compile(".*?[t|T|s|S](ier)?\\s*(?<tier>[1-9]).*");
-    private static final Pattern WORLD_PATTERN = Pattern.compile(".*?[w|W](orld)?\\s*(?<world>\\d{3}).*");
+    private static final Pattern TIER_PATTERN = Pattern.compile(".*?[t|T|s|S](ier|ize)?\\s*(?<tier>[1-9]).*");
+    private static final Pattern WORLD_PATTERN = Pattern.compile(".*?([w|W](orld)?)?\\s*(?<world>\\d{3}).*");
 
     private StarLingo() {
     }
@@ -103,13 +103,13 @@ public class StarLingo {
                 return StarLocation.VARROCK_SOUTH_EAST_MINE;
             else
                 return StarLocation.VARROCK_AUBURY;
-        if (containsAnyIgnoreCase(text, "vsw", "champions guild"))
+        if (containsAnyIgnoreCase(text, "vsw", "champions guild", "vmw"))
             return StarLocation.VARROCK_SOUTH_WEST_MINE;
-        if (containsIgnoreCase(text, "vse"))
+        if (containsAnyIgnoreCase(text, "vse", "vme"))
             return StarLocation.VARROCK_SOUTH_EAST_MINE;
 
         //al kharid, duel arena
-        if (containsAllIgnoreCase(text, "al", "kharid"))
+        if (containsAllIgnoreCase(text, "al", "kharid") || containsAnyIgnoreCase(text, "alk", "ally"))
             if (containsIgnoreCase(text, "mine"))
                 return StarLocation.AL_KHARID_MINE;
             else if (containsIgnoreCase(text, "bank"))

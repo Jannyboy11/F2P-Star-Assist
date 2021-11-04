@@ -43,7 +43,7 @@ public class StarClient {
 
 
     public CompletableFuture<Set<CrashedStar>> requestStars() {
-        String url = config.httpUrl() + EndPoints.ALL_STARS;
+        String url = config.httpUrl() + EndPoints.ALL_STARS; //TODO + '/' + groupKey
         Request request = new Request.Builder().url(url).get().build();
 
         CompletableFuture<Set<CrashedStar>> future = new CompletableFuture<>();
@@ -87,7 +87,7 @@ public class StarClient {
     }
 
     public CompletableFuture<Optional<CrashedStar>> sendStar(CrashedStar star) {
-        String url = config.httpUrl() + EndPoints.SEND_STAR;
+        String url = config.httpUrl() /*TODO group key*/ + EndPoints.SEND_STAR;
         RequestBody requestBody = RequestBody.create(APPLICATION_JSON, StarJson.crashedStarJson(star).toString());
         Request request = new Request.Builder().url(url).put(requestBody).build();
 
@@ -135,7 +135,7 @@ public class StarClient {
     }
 
     public CompletableFuture<CrashedStar> updateStar(StarKey starKey, StarTier tier) {
-        String url = config.httpUrl() + EndPoints.UPDATE_STAR;
+        String url = config.httpUrl() /*TODO group key*/ + EndPoints.UPDATE_STAR;
         RequestBody requestBody = RequestBody.create(APPLICATION_JSON, StarJson.starUpdateJson(new StarUpdate(starKey, tier)).toString());
         Request request = new Request.Builder().url(url).patch(requestBody).build();
 
@@ -176,7 +176,7 @@ public class StarClient {
     }
 
     public CompletableFuture<Void> deleteStar(StarKey starKey) {
-        String url = config.httpUrl() + EndPoints.DELETE_STAR;
+        String url = config.httpUrl() /*TODO group key*/ + EndPoints.DELETE_STAR;
         RequestBody requestBody = RequestBody.create(APPLICATION_JSON, StarJson.starKeyJson(starKey).toString());
         Request request = new Request.Builder().url(url).delete(requestBody).build();
 

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.janboerman.starhunt.common.CrashedStar;
+import com.janboerman.starhunt.common.GroupKey;
 import com.janboerman.starhunt.common.StarKey;
 import com.janboerman.starhunt.common.StarTier;
 import com.janboerman.starhunt.common.StarUpdate;
@@ -31,27 +32,51 @@ class StarHandler extends AbstractHandler {
         this.starDatabase = starDatabase;
     }
 
+    private static String extractKey(String target, String endpoint) {
+        int endPointLength = endpoint.length();
+        if (target.length() < endPointLength + 2) return null;
+        if (target.charAt(endPointLength) != '/') return null;
+        if (target.charAt(endPointLength + 1) == '/') return null;
+
+        return target.substring(endPointLength + 1);
+    }
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         //TODO rate limit
         //TODO authentication??
 
-        switch (target) {
-            case EndPoints.ALL_STARS: receiveRequestStars(request, response); baseRequest.setHandled(true); break;
-            case EndPoints.SEND_STAR: receiveSendStar(request, response); baseRequest.setHandled(true); break;
-            case EndPoints.UPDATE_STAR: receiveUpdateStar(request, response); baseRequest.setHandled(true); break;
-            case EndPoints.DELETE_STAR: receiveDeleteStar(request, response); baseRequest.setHandled(true); break;
-            default: response.setStatus(HttpServletResponse.SC_NOT_FOUND); baseRequest.setHandled(true); break;
+        match: {
+            if (target.startsWith(EndPoints.ALL_STARS)) {
+                String groupKey = extractKey(target, EndPoints.ALL_STARS);
+                if (groupKey == null) break match;
+                receiveRequestStars(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
+            } else if (target.startsWith(EndPoints.SEND_STAR)) {
+                String groupKey = extractKey(target, EndPoints.SEND_STAR);
+                if (groupKey == null) break match;
+                receiveSendStar(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
+            } else if (target.startsWith(EndPoints.UPDATE_STAR)) {
+                String groupKey = extractKey(target, EndPoints.UPDATE_STAR);
+                if (groupKey == null) break match;
+                receiveUpdateStar(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
+            } else if (target.startsWith(EndPoints.DELETE_STAR)) {
+                String groupKey = extractKey(target, EndPoints.DELETE_STAR);
+                if (groupKey == null) break match;
+                receiveDeleteStar(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
+            }
         }
+
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        baseRequest.setHandled(true);
     }
 
-    private void receiveRequestStars(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void receiveRequestStars(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch (request.getMethod()) {
             case "GET":
                 //response
                 response.setContentType(APPLICATION_JSON);
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write(StarJson.crashedStarsJson(starDatabase.getStars()).toString());
+                response.getWriter().write(StarJson.crashedStarsJson(starDatabase.getStars(groupKey)).toString());
                 break;
             default:
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -59,7 +84,7 @@ class StarHandler extends AbstractHandler {
         }
     }
 
-    private void receiveSendStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void receiveSendStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch (request.getMethod()) {
             case "PUT":
                 try {
@@ -68,7 +93,7 @@ class StarHandler extends AbstractHandler {
                         CrashedStar star = StarJson.crashedStar(jsonObject);
 
                         //apply update
-                        boolean isNew = starDatabase.add(star);
+                        boolean isNew = starDatabase.add(groupKey, star);
 
                         //response
                         if (isNew) {
@@ -76,7 +101,7 @@ class StarHandler extends AbstractHandler {
                             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                         } else {
                             //reply with the currently existing star, if one already exists
-                            star = starDatabase.get(star.getKey());
+                            star = starDatabase.get(groupKey, star.getKey());
 
                             response.setContentType(APPLICATION_JSON);
                             response.setStatus(HttpServletResponse.SC_OK);
@@ -93,7 +118,7 @@ class StarHandler extends AbstractHandler {
         }
     }
 
-    private void receiveUpdateStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void receiveUpdateStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch(request.getMethod()) {
             case "PATCH":
                 try {
@@ -102,7 +127,7 @@ class StarHandler extends AbstractHandler {
                         StarUpdate starUpdate = StarJson.starUpdate(jsonObject);
                         StarKey starKey = starUpdate.getKey();
                         StarTier newTier = starUpdate.getTier();
-                        CrashedStar star = starDatabase.get(starKey);
+                        CrashedStar star = starDatabase.get(groupKey, starKey);
 
                         //apply update
                         if (star != null) {
@@ -113,7 +138,7 @@ class StarHandler extends AbstractHandler {
                         } else {
                             //this shouldn't really happen.
                             star = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
-                            starDatabase.add(star);
+                            starDatabase.add(groupKey, star);
                         }
 
                         //response
@@ -133,7 +158,7 @@ class StarHandler extends AbstractHandler {
         }
     }
 
-    private void receiveDeleteStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void receiveDeleteStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch (request.getMethod()) {
             case "DELETE":
                 try {
@@ -142,7 +167,7 @@ class StarHandler extends AbstractHandler {
                         StarKey starKey = StarJson.starKey(jsonObject);
 
                         //apply update
-                        starDatabase.remove(starKey);
+                        starDatabase.remove(groupKey, starKey);
                     }
 
                     //response
