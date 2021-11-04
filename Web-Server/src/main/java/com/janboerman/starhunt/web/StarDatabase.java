@@ -37,7 +37,11 @@ public class StarDatabase {
     }
 
     public synchronized void forceAdd(GroupKey groupKey, CrashedStar crashedStar) {
-        groupCaches.get(groupKey, StarCache::new).forceAdd(crashedStar);
+        try {
+            groupCaches.get(groupKey, StarCache::new).forceAdd(crashedStar);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("cannot occur", e);
+        }
     }
 
     public synchronized boolean remove(GroupKey groupKey, StarKey starKey) {
