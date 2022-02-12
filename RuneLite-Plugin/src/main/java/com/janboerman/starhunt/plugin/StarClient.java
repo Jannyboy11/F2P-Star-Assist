@@ -6,8 +6,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.janboerman.starhunt.common.CrashedStar;
+import com.janboerman.starhunt.common.GroupKey;
 import com.janboerman.starhunt.common.StarKey;
 import com.janboerman.starhunt.common.StarLocation;
+import com.janboerman.starhunt.common.StarPacket;
 import com.janboerman.starhunt.common.StarTier;
 import com.janboerman.starhunt.common.StarUpdate;
 import com.janboerman.starhunt.common.web.EndPoints;
@@ -42,11 +44,14 @@ public class StarClient {
     }
 
 
-    public CompletableFuture<Set<CrashedStar>> requestStars() {
-        String url = config.httpUrl() + EndPoints.ALL_STARS; //TODO + '/' + groupKey
-        Request request = new Request.Builder().url(url).get().build();
+    public CompletableFuture<Set<CrashedStar>> requestStars(Set<GroupKey> groups) {
+        final String json = StarJson.groupKeysJson(groups).toString();
 
-        CompletableFuture<Set<CrashedStar>> future = new CompletableFuture<>();
+        final String url = config.httpUrl() + EndPoints.ALL_STARS;
+        final RequestBody requestBody = RequestBody.create(APPLICATION_JSON, json);
+        final Request request = new Request.Builder().url(url).post(requestBody).build();
+
+        final CompletableFuture<Set<CrashedStar>> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
@@ -86,12 +91,14 @@ public class StarClient {
         return future;
     }
 
-    public CompletableFuture<Optional<CrashedStar>> sendStar(CrashedStar star) {
-        String url = config.httpUrl() /*TODO group key*/ + EndPoints.SEND_STAR;
-        RequestBody requestBody = RequestBody.create(APPLICATION_JSON, StarJson.crashedStarJson(star).toString());
-        Request request = new Request.Builder().url(url).put(requestBody).build();
+    public CompletableFuture<Optional<CrashedStar>> sendStar(Set<GroupKey> groups, CrashedStar star) {
+        final String json = StarJson.starPacketJson(new StarPacket(groups, star)).toString();
 
-        CompletableFuture<Optional<CrashedStar>> future = new CompletableFuture<>();
+        final String url = config.httpUrl() + EndPoints.SEND_STAR;
+        final RequestBody requestBody = RequestBody.create(APPLICATION_JSON, json);
+        final Request request = new Request.Builder().url(url).put(requestBody).build();
+
+        final CompletableFuture<Optional<CrashedStar>> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
@@ -134,12 +141,14 @@ public class StarClient {
         return future;
     }
 
-    public CompletableFuture<CrashedStar> updateStar(StarKey starKey, StarTier tier) {
-        String url = config.httpUrl() /*TODO group key*/ + EndPoints.UPDATE_STAR;
-        RequestBody requestBody = RequestBody.create(APPLICATION_JSON, StarJson.starUpdateJson(new StarUpdate(starKey, tier)).toString());
-        Request request = new Request.Builder().url(url).patch(requestBody).build();
+    public CompletableFuture<CrashedStar> updateStar(Set<GroupKey> groups, StarKey starKey, StarTier tier) {
+        final String json = StarJson.starPacketJson(new StarPacket(groups, new StarUpdate(starKey, tier))).toString();
 
-        CompletableFuture<CrashedStar> future = new CompletableFuture<>();
+        final String url = config.httpUrl() + EndPoints.UPDATE_STAR;
+        final RequestBody requestBody = RequestBody.create(APPLICATION_JSON, json);
+        final Request request = new Request.Builder().url(url).patch(requestBody).build();
+
+        final CompletableFuture<CrashedStar> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
@@ -175,12 +184,14 @@ public class StarClient {
         return future;
     }
 
-    public CompletableFuture<Void> deleteStar(StarKey starKey) {
-        String url = config.httpUrl() /*TODO group key*/ + EndPoints.DELETE_STAR;
-        RequestBody requestBody = RequestBody.create(APPLICATION_JSON, StarJson.starKeyJson(starKey).toString());
-        Request request = new Request.Builder().url(url).delete(requestBody).build();
+    public CompletableFuture<Void> deleteStar(Set<GroupKey> groups, StarKey starKey) {
+        final String json = StarJson.starPacketJson(new StarPacket(groups, starKey)).toString();
 
-        CompletableFuture<Void> future = new CompletableFuture<>();
+        final String url = config.httpUrl() + EndPoints.DELETE_STAR;
+        final RequestBody requestBody = RequestBody.create(APPLICATION_JSON, json);
+        final Request request = new Request.Builder().url(url).delete(requestBody).build();
+
+        final CompletableFuture<Void> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override

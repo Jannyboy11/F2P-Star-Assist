@@ -12,7 +12,7 @@
     <artifactId>RuneLite-Plugin</artifactId>
 
     <properties>
-        <runelite.version>1.8.1</runelite.version>
+        <runelite.version>1.8.11</runelite.version>
     </properties>
 
     <build>

@@ -44,7 +44,8 @@ class StarHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         //TODO rate limit
-        //TODO authentication??
+
+        //TODO update endpoints as to not include the group keys anymore.
 
         match: {
             if (target.startsWith(EndPoints.ALL_STARS)) {
@@ -71,6 +72,9 @@ class StarHandler extends AbstractHandler {
     }
 
     private void receiveRequestStars(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //TODO group keys
+        //TODO POST
+
         switch (request.getMethod()) {
             case "GET":
                 //response
@@ -85,6 +89,8 @@ class StarHandler extends AbstractHandler {
     }
 
     private void receiveSendStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //TODO group keys
+
         switch (request.getMethod()) {
             case "PUT":
                 try {
@@ -119,6 +125,8 @@ class StarHandler extends AbstractHandler {
     }
 
     private void receiveUpdateStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //TODO group keys
+
         switch(request.getMethod()) {
             case "PATCH":
                 try {
@@ -159,6 +167,8 @@ class StarHandler extends AbstractHandler {
     }
 
     private void receiveDeleteStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        //TODO group keys
+
         switch (request.getMethod()) {
             case "DELETE":
                 try {

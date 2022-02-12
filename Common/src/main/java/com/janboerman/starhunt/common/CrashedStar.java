@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
 
-public final class CrashedStar implements Comparable<CrashedStar> {
+public final class CrashedStar implements Comparable<CrashedStar>, Payload {
 
     private static final Comparator<CrashedStar> COMPARATOR = Comparator
             .comparing(CrashedStar::getTier)

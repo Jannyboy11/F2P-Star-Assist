@@ -2,7 +2,7 @@ package com.janboerman.starhunt.common;
 
 import java.util.Objects;
 
-public final class StarUpdate {
+public final class StarUpdate implements Payload {
 
     private final StarLocation location;
     private final int world;

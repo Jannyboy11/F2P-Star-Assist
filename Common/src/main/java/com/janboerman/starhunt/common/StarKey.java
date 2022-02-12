@@ -3,7 +3,7 @@ package com.janboerman.starhunt.common;
 import java.util.Comparator;
 import java.util.Objects;
 
-public final class StarKey implements Comparable<StarKey> {
+public final class StarKey implements Comparable<StarKey>, Payload {
 
     private static final Comparator<StarKey> COMPARATOR = Comparator
             .comparing(StarKey::getLocation)

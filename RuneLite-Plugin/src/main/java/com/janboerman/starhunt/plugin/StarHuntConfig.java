@@ -8,14 +8,45 @@ import net.runelite.client.config.ConfigSection;
 @ConfigGroup("F2P Star Hunt")
 public interface StarHuntConfig extends Config {
 
+	// ======================================== Groups ========================================	\\
+	//																							\\
+
+	@ConfigSection(
+			name = "Groups Settings",
+			description = "Settings for groups",
+			position = 0,
+			closedByDefault = true
+	)
+	public static final String GROUP_SETTINGS_SECTION = "Groups Settings";
+
+	//																							\\
+	//																							\\
+
+	@ConfigItem(
+			position = 0,
+			keyName = "groups",
+			name = "Groups",
+			description = "Group names and group keys. Uses JSON.",
+			section = GROUP_SETTINGS_SECTION
+	)
+	default String groups() {
+		return "{\r\n" +
+				"    \"My Group\" : \"very_secret_key\"\r\n" +
+				"}";
+	}
+
+	//																							\\
+	// ======================================================================================== \\
+
+
 	// ========================================= HTTP =========================================	\\
 	//																							\\
 
 	@ConfigSection(
 			name = "Webserver Settings",
 			description = "Settings for sending and receiving data from the webserver",
-			position = 0,
-			closedByDefault = false
+			position = 1,
+			closedByDefault = true
 	)
 	public static final String HTTP_SETTINGS_SECTION = "HTTP Settings";
 
@@ -24,18 +55,18 @@ public interface StarHuntConfig extends Config {
 
 	@ConfigItem(
 			position = 0,
-			keyName = "send and receive",
+			keyName = "http enabled",
 			name = "Enable webserver communication",
-			description = "Whether to send and receive data from the webserver",
+			description = "Whether a connection with the webserver should be established",
 			section = HTTP_SETTINGS_SECTION
 	)
 	default boolean httpConnectionEnabled() {
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
 			position = 1,
-			keyName = "url",
+			keyName = "address",
 			name = "Webserver URL",
 			description = "The address of the webserver with which star locations are shared",
 			section = HTTP_SETTINGS_SECTION
@@ -44,38 +75,154 @@ public interface StarHuntConfig extends Config {
 		return "http://localhost:8080";
 	}
 
-	@ConfigItem(
+	//																							\\
+	// ======================================================================================== \\
+
+
+	// ======================================== Sharing ======================================= \\
+	//  																						\\
+
+	@ConfigSection(
+			name = "Sharing Settings",
+			description = "Settings for sharing with groups (only works when webserver communication is enabled)",
 			position = 2,
-			keyName = "group key",
-			name = "Group key",
-			description = "The key of the group with which you're sharing stars",
-			hidden = true,
-			section = HTTP_SETTINGS_SECTION
+			closedByDefault = false
 	)
-	public default String groupKey() {
-		return "";
+	public static final String SHARING_SETTINGS_SECTION = "Sharing Settings";
+
+	//																							\\
+	//																							\\
+
+	@ConfigItem(
+			position = 0,
+			keyName = "share found stars",
+			name = "Share found-by-you stars",
+			description = "Whether to share stars that you encounter in the world",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default boolean shareFoundStars() {
+		return true;
 	}
 
 	@ConfigItem(
-			position = 3,
+			position = 1,
 			keyName = "share pvp-world stars",
 			name = "Share PVP-world stars",
 			description = "Whether to send stars in PVP-worlds",
-			section = HTTP_SETTINGS_SECTION
+			section = SHARING_SETTINGS_SECTION
 	)
 	default boolean sharePvpWorldStars() {
 		return false;
 	}
 
 	@ConfigItem(
-			position = 4,
+			position = 2,
 			keyName = "share wilderness stars",
 			name = "Share Wilderness stars",
 			description = "Whether to send stars in the Wilderness",
-			section = HTTP_SETTINGS_SECTION
+			section = SHARING_SETTINGS_SECTION
 	)
 	default boolean shareWildernessStars() {
 		return false;
+	}
+
+	@ConfigItem(
+			position = 3,
+			keyName = "share found stars with groups",
+			name = "Share stars I find with groups:",
+			description = "With which group should stars that you find yourself be shared? (semicolon-separated list)",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default String getGroupsToShareFoundStarsWith() {
+		return "My Group";
+	}
+
+	@ConfigItem(
+			position = 4,
+			keyName = "private chat",
+			name = "Enable private chat integration",
+			description = "Analyze private chat for possible star calls",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default boolean interpretPrivateChat() {
+		return true;
+	}
+
+	@ConfigItem(
+			position = 5,
+			keyName = "share private chat calls",
+			name = "Share private chat calls with group:",
+			description = "Share private chat calls with your group",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default String shareCallsReceivedByPrivateChat() {
+		return "My Group";
+	}
+
+	@ConfigItem(
+			position = 6,
+			keyName = "friends chat",
+			name = "Enable friends chat integration",
+			description = "Analyze friends chat for possible star calls",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default boolean interpretFriendsChat() {
+		return true;
+	}
+
+	@ConfigItem(
+			position = 7,
+			keyName = "share friends chat calls",
+			name = "Share friends chat calls with group:",
+			description = "Share friends chat calls with your group",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default String shareCallsReceivedByFriendsChat() {
+		return "My Group";
+	}
+
+	@ConfigItem(
+			position = 8,
+			keyName = "clan chat",
+			name = "Enable clan chat integration",
+			description = "Analyze clan chat for possible star calls",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default boolean interpretClanChat() {
+		return true;
+	}
+
+	@ConfigItem(
+			position = 9,
+			keyName = "share clan chat calls",
+			name = "Share clan chat calls with group:",
+			description = "Share clan chat calls with your group",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default String shareCallsReceivedByClanChat() {
+		return "My Group";
+	}
+
+	@ConfigItem(
+			position = 10,
+			keyName = "public chat",
+			name = "Enable public chat integration",
+			description = "Analyze public chat for possible star calls",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default boolean interpretPublicChat() {
+		return false;
+	}
+
+	@ConfigItem(
+			position = 11,
+			keyName = "share public chat calls",
+			name = "Share public chat calls with group:",
+			description = "Share public chat calls with your group",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default String shareCallsReceivedByPublicChat() {
+		return "My Group";
 	}
 
 	//																							\\
@@ -88,7 +235,7 @@ public interface StarHuntConfig extends Config {
 	@ConfigSection(
 			name = "Hint Arrow Settings",
 			description = "Settings for hint arrows",
-			position = 1,
+			position = 3,
 			closedByDefault = false
 	)
 	public static final String HINT_ARROW = "Hint Arrow Settings";
@@ -97,7 +244,7 @@ public interface StarHuntConfig extends Config {
 	//																							\\
 
 	@ConfigItem(
-			position = 5,
+			position = 13,
 			keyName = "hint enabled",
 			name = "Enable arrow hints",
 			description = "Whether to display an arrow that hints to the target location",
@@ -109,112 +256,6 @@ public interface StarHuntConfig extends Config {
 
 	//																							\\
 	// ========================================================================================	\\
-
-
-	// =================================== Chat Integration ===================================	\\
-	//																							\\
-
-	@ConfigSection(
-			name = "Chat Integration Settings",
-			description = "Integration with chat channels",
-			position = 2,
-			closedByDefault = false
-	)
-	public static final String CHAT_INTEGRATION = "Chat Integration Settings";
-
-	//																							\\
-	//																							\\
-
-	@ConfigItem(
-			position = 6,
-			keyName = "private chat",
-			name = "Enable private chat integration",
-			description = "Analyze private chat for possible star calls",
-			section = CHAT_INTEGRATION
-	)
-	default boolean interpretPrivateChat() {
-		return true;
-	}
-
-	@ConfigItem(
-			position = 7,
-			keyName = "share private chat calls",
-			name = "Share private chat calls with group:",
-			description = "Share private chat calls with your group",
-			section = CHAT_INTEGRATION
-	)
-	default String shareCallsReceivedByPrivateChat() {
-		return "";
-	}
-
-	@ConfigItem(
-			position = 8,
-			keyName = "friends chat",
-			name = "Enable friends chat integration",
-			description = "Analyze friends chat for possible star calls",
-			section = CHAT_INTEGRATION
-	)
-	default boolean interpretFriendsChat() {
-		return true;
-	}
-
-	@ConfigItem(
-			position = 9,
-			keyName = "share friends chat calls",
-			name = "Share friends chat calls with group:",
-			description = "Share friends chat calls with your group",
-			section = CHAT_INTEGRATION
-	)
-	default String shareCallsReceivedByFriendsChat() {
-		return "";
-	}
-
-	@ConfigItem(
-			position = 10,
-			keyName = "clan chat",
-			name = "Enable clan chat integration",
-			description = "Analyze clan chat for possible star calls",
-			section = CHAT_INTEGRATION
-	)
-	default boolean interpretClanChat() {
-		return true;
-	}
-
-	@ConfigItem(
-			position = 11,
-			keyName = "share clan chat calls",
-			name = "Share clan chat calls with group:",
-			description = "Share clan chat calls with your group",
-			section = CHAT_INTEGRATION
-	)
-	default String shareCallsReceivedByClanChat() {
-		return "";
-	}
-
-	@ConfigItem(
-			position = 12,
-			keyName = "public chat",
-			name = "Enable public chat integration",
-			description = "Analyze public chat for possible star calls",
-			section = CHAT_INTEGRATION
-	)
-	default boolean interpretPublicChat() {
-		return false;
-	}
-
-	@ConfigItem(
-			position = 13,
-			keyName = "share public chat calls",
-			name = "Share public chat calls with group:",
-			description = "Share public chat calls with your group",
-			section = CHAT_INTEGRATION
-	)
-	default String shareCallsReceivedByPublicChat() {
-		return "";
-	}
-
-	//																							\\
-	// ======================================================================================== \\
 
 	//TODO tile markers for star landing sites
 	//TODO tile markers for hopping locations for (duel arena, al kharid mine) and (rimmington mine, crafting guild)

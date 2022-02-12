@@ -1,32 +1,28 @@
 package com.janboerman.starhunt.common;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public final class GroupKey {
 
-    private final String key;
+    private String key;
 
-    private GroupKey(String key) {
+    public GroupKey(String key) {
         this.key = Objects.requireNonNull(key, "key cannot be null");
     }
 
-    public static GroupKey fromRaw(String rawKey) {
+    //TODO delete this.
+    public static GroupKey fromPlain(String rawKey) {
         Objects.requireNonNull(rawKey, "rawKey cannot be null");
-        try {
-            String encoded = URLEncoder.encode(rawKey, StandardCharsets.UTF_8.name());
-            return new GroupKey(encoded);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("impossible", e);
-        }
+
+        return new GroupKey(rawKey);
     }
 
+    @Deprecated //TODO delete this
     public static GroupKey fromEncoded(String encodedKey) {
         return new GroupKey(encodedKey);
     }
 
+    @Deprecated //TODO delete this.
     public String encoded() {
         return key;
     }
@@ -47,6 +43,6 @@ public final class GroupKey {
 
     @Override
     public String toString() {
-        return encoded();
+        return key;
     }
 }

@@ -10,10 +10,25 @@ import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class StarJson {
 
     private StarJson() {
+    }
+
+    public static StarPacket starPacket(JsonObject starPacket) {
+        Set<GroupKey> groups = readGroupKeys(starPacket);
+        Payload payload = readPayload(starPacket);
+        return new StarPacket(groups, payload);
+    }
+
+    public static JsonObject starPacketJson(StarPacket packet) {
+        JsonObject result = new JsonObject();
+        writeGroupKeys(result, packet.getGroups());
+        writePayload(result, packet.getPayload());
+        return result;
     }
 
     public static CrashedStar crashedStar(JsonObject crashedStar) {
@@ -82,6 +97,17 @@ public class StarJson {
         return result;
     }
 
+    public static Set<GroupKey> groupKeys(JsonArray groupKeys) {
+        return StreamSupport.stream(groupKeys.spliterator(), false)
+                .map(jsonElem -> new GroupKey(jsonElem.getAsString()))
+                .collect(Collectors.toSet());
+    }
+
+    public static JsonArray groupKeysJson(Set<GroupKey> groupKeys) {
+        return groupKeys.stream()
+                .map(groupKey -> new JsonPrimitive(groupKey.toString()))
+                .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
+    }
 
     // ============================== helper methods ============================== \\
 
@@ -145,4 +171,48 @@ public class StarJson {
             crashedStar.add("discovered by", jsonUser);
         }
     }
+
+    private static Set<GroupKey> readGroupKeys(JsonObject starPacket) {
+        JsonArray jsonArray = starPacket.getAsJsonArray("groups");
+        return groupKeys(jsonArray);
+    }
+
+    private static void writeGroupKeys(JsonObject starPacket, Set<GroupKey> groupKeys) {
+        starPacket.add("groups", groupKeysJson(groupKeys));
+    }
+
+    private static Payload readPayload(JsonObject starPacket) {
+        JsonElement payload = starPacket.get("payload");
+        String type = starPacket.get("type").getAsString();
+        switch (type) {
+            case "star key":
+                JsonObject starKeyPayload = (JsonObject) payload;
+                return starKey(starKeyPayload);
+            case "crashed star":
+                JsonObject crashedStarPayload = (JsonObject) payload;
+                return crashedStar(crashedStarPayload);
+            case "star update":
+                JsonObject starUpdatePayload = (JsonObject) payload;
+                return starUpdate(starUpdatePayload);
+            default:
+                return null;
+        }
+    }
+
+    private static void writePayload(JsonObject starPacket, Payload payload) {
+        if (payload instanceof StarKey) {
+            StarKey starKey = (StarKey) payload;
+            starPacket.add("type", new JsonPrimitive("star key"));
+            starPacket.add("payload", starKeyJson(starKey));
+        } else if (payload instanceof CrashedStar) {
+            CrashedStar crashedStar = (CrashedStar) payload;
+            starPacket.add("type", new JsonPrimitive("crashed star"));
+            starPacket.add("payload", crashedStarJson(crashedStar));
+        } else if (payload instanceof StarUpdate) {
+            StarUpdate starUpdate = (StarUpdate) payload;
+            starPacket.add("type", new JsonPrimitive("star update"));
+            starPacket.add("payload", starUpdateJson(starUpdate));
+        }
+    }
+
 }

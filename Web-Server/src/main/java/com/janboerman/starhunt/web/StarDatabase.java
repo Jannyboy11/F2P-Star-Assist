@@ -9,6 +9,7 @@ import com.janboerman.starhunt.common.StarKey;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -17,9 +18,10 @@ public class StarDatabase {
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
             .expireAfterAccess(3, TimeUnit.HOURS)
             .build();
+    private final WeakHashMap<StarKey, GroupKey> starsFoundByGroup = new WeakHashMap<>();
 
     public synchronized boolean add(GroupKey groupKey, CrashedStar crashedStar) {
-        //TODO if the star already exists for another group, then don't add it.
+        if (starsFoundByGroup.putIfAbsent(crashedStar.getKey(), groupKey) != null) return false;
 
         try {
             return groupCaches.get(groupKey, StarCache::new).add(crashedStar);
@@ -47,7 +49,9 @@ public class StarDatabase {
     public synchronized boolean remove(GroupKey groupKey, StarKey starKey) {
         StarCache starCache = groupCaches.getIfPresent(groupKey);
         if (starCache == null) return false;
-        return starCache.remove(starKey);
+        boolean removed = starCache.remove(starKey);
+        if (removed) starsFoundByGroup.remove(starKey, groupKey);
+        return removed;
     }
 
     public synchronized Set<CrashedStar> getStars(GroupKey groupKey) {
