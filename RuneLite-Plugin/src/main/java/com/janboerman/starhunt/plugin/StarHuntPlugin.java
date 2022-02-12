@@ -67,7 +67,7 @@ public class StarHuntPlugin extends Plugin {
 
 	//populated manually
 	private final StarCache starCache;
-	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();	//TODO maintain this in the 'reportX' methods.
+	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
 	private final Map<String, GroupKey> groups = new HashMap<>();						//TODO read json, also read this on config reload.
 
 	//populated right after construction
@@ -178,6 +178,12 @@ public class StarHuntPlugin extends Plugin {
 		rsWorld.setTypes(WorldUtil.toWorldTypes(world.getTypes()));
 
 		return rsWorld;
+	}
+
+	private Set<GroupKey> getOwningGroups(StarKey starKey) {
+		Set<GroupKey> groups = owningGroups.get(starKey);
+		if (groups == null) return Collections.emptySet();
+		return groups;
 	}
 
 	private Map<String, GroupKey> getGroups() {
@@ -293,7 +299,7 @@ public class StarHuntPlugin extends Plugin {
 		updatePanel();
 
 		if (broadcast && shouldBroadcastStar(starKey)) {
-			Set<GroupKey> shareGroups = owningGroups.get(starKey);
+			Set<GroupKey> shareGroups = getOwningGroups(starKey);
 			CompletableFuture<CrashedStar> upToDateStar = starClient.updateStar(shareGroups, starKey, newTier);
 			upToDateStar.whenCompleteAsync((theStar, ex) -> {
 				if (ex != null) {

@@ -1,27 +1,9 @@
 package com.janboerman.starhunt.plugin;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.janboerman.starhunt.common.CrashedStar;
-import com.janboerman.starhunt.common.GroupKey;
-import com.janboerman.starhunt.common.StarKey;
-import com.janboerman.starhunt.common.StarLocation;
-import com.janboerman.starhunt.common.StarPacket;
-import com.janboerman.starhunt.common.StarTier;
-import com.janboerman.starhunt.common.StarUpdate;
-import com.janboerman.starhunt.common.web.EndPoints;
-import com.janboerman.starhunt.common.web.StarJson;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import com.google.gson.*;
+import com.janboerman.starhunt.common.*;
+import com.janboerman.starhunt.common.web.*;
+import okhttp3.*;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -42,7 +24,6 @@ public class StarClient {
         this.httpClient = httpClient;
         this.config = config;
     }
-
 
     public CompletableFuture<Set<CrashedStar>> requestStars(Set<GroupKey> groups) {
         final String json = StarJson.groupKeysJson(groups).toString();
