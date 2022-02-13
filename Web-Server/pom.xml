@@ -12,7 +12,7 @@
     <artifactId>Web-Server</artifactId>
 
     <properties>
-        <jetty.version>11.0.7</jetty.version>
+        <jetty.version>11.0.8</jetty.version>
     </properties>
 
     <build>

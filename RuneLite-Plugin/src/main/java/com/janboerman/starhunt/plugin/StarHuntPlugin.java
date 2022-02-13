@@ -163,7 +163,7 @@ public class StarHuntPlugin extends Plugin {
 		}
 	}
 
-
+	@Nullable
 	private World rsWorld(net.runelite.http.api.worlds.World world) {
 		if (world == null) return null;
 		assert client.isClientThread();
