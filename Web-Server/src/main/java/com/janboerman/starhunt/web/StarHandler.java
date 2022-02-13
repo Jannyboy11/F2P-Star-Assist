@@ -103,8 +103,6 @@ class StarHandler extends AbstractHandler {
     }
 
     private void receiveSendStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        //TODO group keys
-
         switch (request.getMethod()) {
             case "PUT":
                 try {

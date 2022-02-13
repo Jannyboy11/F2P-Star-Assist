@@ -203,7 +203,7 @@ public class StarHuntPlugin extends Plugin {
 				for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
 					String groupName = entry.getKey();
 					JsonElement groupKeyString = entry.getValue();
-					GroupKey groupKey = GroupKey.fromPlain(groupKeyString.getAsString());
+					GroupKey groupKey = new GroupKey(groupKeyString.getAsString());
 					result.put(groupName, groupKey);
 				}
 
