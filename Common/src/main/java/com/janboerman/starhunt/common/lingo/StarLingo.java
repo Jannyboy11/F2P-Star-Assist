@@ -71,7 +71,6 @@ public class StarLingo {
             else if ((containsIgnoreCase(text, "south") && !containsIgnoreCase(text, "west"))
                     || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy"))
                 return StarLocation.WILDERNESS_SOUTH_MINE;
-        //TODO which location is east skeles? is there also west skeles? in that case east skeles would be WILDERNESS_SOUTH_MINE.
 
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven"))
