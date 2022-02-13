@@ -5,7 +5,6 @@ import javax.swing.*;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.inject.Provides;
 import com.janboerman.starhunt.common.CrashedStar;
@@ -212,7 +211,7 @@ public class StarHuntPlugin extends Plugin {
 				log.error("groups must be defined as a json object!");
 				return Collections.emptyMap();
 			}
-		} catch (JsonParseException e) {
+		} catch (RuntimeException e) {
 			log.error("invalid groups json", e);
 			return Collections.emptyMap();
 		}

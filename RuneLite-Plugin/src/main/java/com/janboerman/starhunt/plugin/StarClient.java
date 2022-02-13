@@ -60,7 +60,7 @@ public class StarClient {
                         } else {
                             future.completeExceptionally(new ResponseException(call, "Expected a json array of crashed stars, but got: " + jsonElement));
                         }
-                    } catch (JsonParseException e) {
+                    } catch (RuntimeException e) {
                         future.completeExceptionally(new ResponseException(call, e));
                     }
                 } finally {
@@ -107,7 +107,7 @@ public class StarClient {
                             } else {
                                 future.completeExceptionally(new ResponseException(call, "Expected a crashed star json object, but got: " + jsonElement));
                             }
-                        } catch (JsonParseException e) {
+                        } catch (RuntimeException e) {
                             future.completeExceptionally(new ResponseException(call, e));
                         }
 
@@ -156,7 +156,7 @@ public class StarClient {
                     } else {
                         future.completeExceptionally(new ResponseException(call, "Expected a crashed star json object, but got: " + jsonElement));
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     future.completeExceptionally(new ResponseException(call, e));
                 }
             }

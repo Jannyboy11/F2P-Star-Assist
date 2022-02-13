@@ -93,7 +93,7 @@ class StarHandler extends AbstractHandler {
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.getWriter().write(StarJson.crashedStarsJson(stars).toString());
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
             default:
@@ -135,7 +135,7 @@ class StarHandler extends AbstractHandler {
                             response.getWriter().write(StarJson.crashedStarJson(star).toString());
                         }
                     }
-                } catch (JsonParseException | ClassCastException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -145,39 +145,51 @@ class StarHandler extends AbstractHandler {
         }
     }
 
-    private void receiveUpdateStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        //TODO group keys
-
+    private void receiveUpdateStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch(request.getMethod()) {
             case "PATCH":
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
                     if (jsonElement instanceof JsonObject jsonObject) {
-                        StarUpdate starUpdate = StarJson.starUpdate(jsonObject);
+                        StarPacket starPacket = StarJson.starPacket(jsonObject);
+                        Set<GroupKey> groups = starPacket.getGroups();
+                        StarUpdate starUpdate = (StarUpdate) starPacket.getPayload();
+
                         StarKey starKey = starUpdate.getKey();
                         StarTier newTier = starUpdate.getTier();
-                        CrashedStar star = starDatabase.get(groupKey, starKey);
 
-                        //apply update
-                        if (star != null) {
-                            if (star.getTier().compareTo(newTier) > 0) {
-                                //only update if the currently known tier is higher than the newly-received tier.
-                                star.setTier(newTier);
+                        CrashedStar resultStar = null;
+
+                        for (GroupKey groupKey : groups) {
+                            CrashedStar existingStar = starDatabase.get(groupKey, starKey);
+
+                            //apply update
+                            if (existingStar != null) {
+                                if (existingStar.getTier().compareTo(newTier) > 0) {
+                                    //only update if the currently known tier is higher than the newly-received tier.
+                                    existingStar.setTier(newTier);
+                                }
+                            } else {
+                                //this shouldn't really happen.
+                                existingStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown()/*TODO include User in the StarUpdate packet?*/);
+                                starDatabase.add(groupKey, existingStar);
                             }
-                        } else {
-                            //this shouldn't really happen.
-                            star = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
-                            starDatabase.add(groupKey, star);
+
+                            resultStar = existingStar;
+                        }
+
+                        if (resultStar == null) {
+                            resultStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown()/*TODO include User in the StarUpdate packet?*/);
                         }
 
                         //response
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(APPLICATION_JSON);
-                        response.getWriter().write(StarJson.crashedStarJson(star).toString());
+                        response.getWriter().write(StarJson.crashedStarJson(resultStar).toString());
                     } else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -188,23 +200,25 @@ class StarHandler extends AbstractHandler {
     }
 
     private void receiveDeleteStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        //TODO group keys
-
         switch (request.getMethod()) {
             case "DELETE":
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
                     if (jsonElement instanceof JsonObject jsonObject) {
-                        StarKey starKey = StarJson.starKey(jsonObject);
+                        StarPacket starPacket = StarJson.starPacket(jsonObject);
+                        Set<GroupKey> groups = starPacket.getGroups();
+                        StarKey starKey = (StarKey) starPacket.getPayload();
 
-                        //apply update
-                        starDatabase.remove(groupKey, starKey);
+                        for (GroupKey groupKey : groups) {
+                            //apply update
+                            starDatabase.remove(groupKey, starKey);
+                        }
                     }
 
                     //response
                     response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
