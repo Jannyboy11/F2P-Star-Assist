@@ -3,7 +3,6 @@ package com.janboerman.starhunt.common;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Cache;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;

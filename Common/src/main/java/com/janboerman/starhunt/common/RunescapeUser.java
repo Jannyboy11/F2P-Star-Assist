@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public final class RunescapeUser implements User {
 
-    private final String name;
+    private final String name; //rsn
 
     public RunescapeUser(String name) {
         this.name = name;

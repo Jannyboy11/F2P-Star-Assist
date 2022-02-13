@@ -10,23 +10,6 @@ public final class GroupKey {
         this.key = Objects.requireNonNull(key, "key cannot be null");
     }
 
-    //TODO delete this.
-    public static GroupKey fromPlain(String rawKey) {
-        Objects.requireNonNull(rawKey, "rawKey cannot be null");
-
-        return new GroupKey(rawKey);
-    }
-
-    @Deprecated //TODO delete this
-    public static GroupKey fromEncoded(String encodedKey) {
-        return new GroupKey(encodedKey);
-    }
-
-    @Deprecated //TODO delete this.
-    public String encoded() {
-        return key;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;

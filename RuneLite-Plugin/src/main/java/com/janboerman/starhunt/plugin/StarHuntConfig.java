@@ -61,7 +61,7 @@ public interface StarHuntConfig extends Config {
 			section = HTTP_SETTINGS_SECTION
 	)
 	default boolean httpConnectionEnabled() {
-		return true;
+		return false;
 	}
 
 	@ConfigItem(
@@ -96,7 +96,7 @@ public interface StarHuntConfig extends Config {
 	@ConfigItem(
 			position = 0,
 			keyName = "share found stars",
-			name = "Share found-by-you stars",
+			name = "Share found-by-me stars",
 			description = "Whether to share stars that you encounter in the world",
 			section = SHARING_SETTINGS_SECTION
 	)

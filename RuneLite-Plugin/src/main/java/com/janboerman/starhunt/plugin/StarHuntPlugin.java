@@ -68,7 +68,7 @@ public class StarHuntPlugin extends Plugin {
 	//populated manually
 	private final StarCache starCache;
 	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
-	private final Map<String, GroupKey> groups = new HashMap<>();						//TODO read json, also read this on config reload.
+	private final Map<String, GroupKey> groups = new HashMap<>();						//TODO reload this on config change
 
 	//populated right after construction
 	@Inject private Client client;

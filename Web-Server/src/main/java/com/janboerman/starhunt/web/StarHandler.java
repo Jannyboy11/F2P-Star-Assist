@@ -1,5 +1,6 @@
 package com.janboerman.starhunt.web;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -7,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.janboerman.starhunt.common.CrashedStar;
 import com.janboerman.starhunt.common.GroupKey;
 import com.janboerman.starhunt.common.StarKey;
+import com.janboerman.starhunt.common.StarPacket;
 import com.janboerman.starhunt.common.StarTier;
 import com.janboerman.starhunt.common.StarUpdate;
 import com.janboerman.starhunt.common.User;
@@ -18,6 +20,8 @@ import jakarta.servlet.ServletException;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.Request;
@@ -45,25 +49,23 @@ class StarHandler extends AbstractHandler {
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         //TODO rate limit
 
-        //TODO update endpoints as to not include the group keys anymore.
-
         match: {
-            if (target.startsWith(EndPoints.ALL_STARS)) {
+            if (target.equals(EndPoints.ALL_STARS)) {
                 String groupKey = extractKey(target, EndPoints.ALL_STARS);
                 if (groupKey == null) break match;
-                receiveRequestStars(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
-            } else if (target.startsWith(EndPoints.SEND_STAR)) {
+                receiveRequestStars(request, response); baseRequest.setHandled(true); return;
+            } else if (target.equals(EndPoints.SEND_STAR)) {
                 String groupKey = extractKey(target, EndPoints.SEND_STAR);
                 if (groupKey == null) break match;
-                receiveSendStar(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
-            } else if (target.startsWith(EndPoints.UPDATE_STAR)) {
+                receiveSendStar(request, response); baseRequest.setHandled(true); return;
+            } else if (target.equals(EndPoints.UPDATE_STAR)) {
                 String groupKey = extractKey(target, EndPoints.UPDATE_STAR);
                 if (groupKey == null) break match;
-                receiveUpdateStar(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
-            } else if (target.startsWith(EndPoints.DELETE_STAR)) {
+                receiveUpdateStar(request, response); baseRequest.setHandled(true); return;
+            } else if (target.equals(EndPoints.DELETE_STAR)) {
                 String groupKey = extractKey(target, EndPoints.DELETE_STAR);
                 if (groupKey == null) break match;
-                receiveDeleteStar(GroupKey.fromEncoded(groupKey), request, response); baseRequest.setHandled(true); return;
+                receiveDeleteStar(request, response); baseRequest.setHandled(true); return;
             }
         }
 
@@ -71,24 +73,36 @@ class StarHandler extends AbstractHandler {
         baseRequest.setHandled(true);
     }
 
-    private void receiveRequestStars(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        //TODO group keys
-        //TODO POST
-
+    private void receiveRequestStars(HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch (request.getMethod()) {
-            case "GET":
-                //response
-                response.setContentType(APPLICATION_JSON);
-                response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write(StarJson.crashedStarsJson(starDatabase.getStars(groupKey)).toString());
-                break;
+            case "POST":
+                //request body
+                try {
+                    JsonElement jsonElement = JsonParser.parseReader(request.getReader());
+                    if (jsonElement instanceof JsonArray jsonArray) {
+                        Set<GroupKey> groupKeys = StarJson.groupKeys(jsonArray);
+
+                        //calculation
+                        Set<CrashedStar> stars = new HashSet<>();
+                        for (GroupKey groupKey : groupKeys) {
+                            stars.addAll(starDatabase.getStars(groupKey));
+                        }
+
+                        //response
+                        response.setContentType(APPLICATION_JSON);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        response.getWriter().write(StarJson.crashedStarsJson(stars).toString());
+                    }
+                } catch (JsonParseException e) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
             default:
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 break;
         }
     }
 
-    private void receiveSendStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void receiveSendStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
         //TODO group keys
 
         switch (request.getMethod()) {
@@ -96,25 +110,34 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
                     if (jsonElement instanceof JsonObject jsonObject) {
-                        CrashedStar star = StarJson.crashedStar(jsonObject);
+                        StarPacket starPacket = StarJson.starPacket(jsonObject);
+                        Set<GroupKey> groups = starPacket.getGroups();
+                        CrashedStar star = (CrashedStar) starPacket.getPayload();
 
                         //apply update
-                        boolean isNew = starDatabase.add(groupKey, star);
+                        CrashedStar existing = null;
+                        for (GroupKey groupKey : groups) {
+                            CrashedStar ex = starDatabase.addIfAbsent(groupKey, star);
+                            //find the 'smallest' existing star
+                            if ((existing == null) || (ex != null && ex.getTier().getSize() < existing.getTier().getSize())) {
+                                existing = ex;  //can still be null - that is fine.
+                            }
+                        }
 
                         //response
-                        if (isNew) {
-                            //no need to reply with anything if the star is new
+                        if (existing == null) {
+                            //no need to reply with anything if the star is new.
                             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
                         } else {
-                            //reply with the currently existing star, if one already exists
-                            star = starDatabase.get(groupKey, star.getKey());
+                            //reply with the currently existing star, if one already exists.
+                            star = existing;
 
                             response.setContentType(APPLICATION_JSON);
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.getWriter().write(StarJson.crashedStarJson(star).toString());
                         }
                     }
-                } catch (JsonParseException e) {
+                } catch (JsonParseException | ClassCastException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -166,7 +189,7 @@ class StarHandler extends AbstractHandler {
         }
     }
 
-    private void receiveDeleteStar(GroupKey groupKey, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void receiveDeleteStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
         //TODO group keys
 
         switch (request.getMethod()) {

@@ -30,6 +30,32 @@ public class StarDatabase {
         }
     }
 
+    //returns null if the crashedStar is new, or returns an existing star if one already exists.
+    public synchronized CrashedStar addIfAbsent(GroupKey groupKey, CrashedStar crashedStar) {
+        StarKey starKey = crashedStar.getKey();
+        GroupKey owningGroup = starsFoundByGroup.computeIfAbsent(starKey, k -> groupKey);
+        if (!owningGroup.equals(groupKey)) {
+            //another group already found the star first - pretend we don't know about it
+            return null;
+        } else {
+            //groupKey's group is the owner of this star
+            try {
+                StarCache starCache = groupCaches.get(groupKey, StarCache::new);
+                CrashedStar existingStar = starCache.get(starKey);
+                if (existingStar != null && existingStar.getTier().getSize() < crashedStar.getTier().getSize()) {
+                    //existing star was already at a lower tier
+                    return existingStar;
+                } else {
+                    //existingStar is null, or has a higher tier
+                    starCache.forceAdd(crashedStar);
+                    return null;
+                }
+            } catch (ExecutionException e) {
+                throw new RuntimeException("cannot occur", e);
+            }
+        }
+    }
+
     public synchronized CrashedStar get(GroupKey groupKey, StarKey starKey) {
         try {
             return groupCaches.get(groupKey, StarCache::new).get(starKey);
