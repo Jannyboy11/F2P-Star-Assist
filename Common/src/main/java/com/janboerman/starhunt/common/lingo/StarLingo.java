@@ -111,10 +111,10 @@ public class StarLingo {
 
         //al kharid, duel arena
         if (containsAllIgnoreCase(text, "al", "kharid") || containsAnyIgnoreCase(text, "alk", "ally"))
-            if (containsIgnoreCase(text, "mine"))
-                return StarLocation.AL_KHARID_MINE;
-            else if (containsIgnoreCase(text, "bank"))
+            if (containsIgnoreCase(text, "bank"))
                 return StarLocation.AL_KHARID_BANK;
+            else if (containsIgnoreCase(text, "mine"))
+                return StarLocation.AL_KHARID_MINE;
         if (containsIgnoreCase(text, "duel"))
             return StarLocation.DUEL_ARENA;
 

@@ -34,4 +34,13 @@ public class InterpretationsTest {
         assertEquals(StarTier.SIZE_3, StarLingo.interpretTier(text));
         assertEquals(382, StarLingo.interpretWorld(text));
     }
+
+    @Test
+    public void testAlKharidBank(){
+        String text = "t1 w453 al kharid bank";
+
+        assertEquals(StarLocation.AL_KHARID_BANK, StarLingo.interpretLocation(text));
+        assertEquals(StarTier.SIZE_1, StarLingo.interpretTier(text));
+        assertEquals(453, StarLingo.interpretWorld(text));
+    }
 }
