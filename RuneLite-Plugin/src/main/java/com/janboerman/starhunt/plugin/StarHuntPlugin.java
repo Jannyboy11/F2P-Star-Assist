@@ -162,16 +162,20 @@ public class StarHuntPlugin extends Plugin {
 	}
 
 	public void showHintArrow(boolean whetherTo) {
-		if (whetherTo) {
-			int playerWorld = client.getWorld();
-			for (CrashedStar star : starCache.getStars()) {
-				if (star.getWorld() == playerWorld) {
-					client.setHintArrow(StarPoints.fromLocation(star.getLocation()));
+		assert client.isClientThread();
+
+		int playerWorld = client.getWorld();
+		for (CrashedStar star : starCache.getStars()) {
+			if (star.getWorld() == playerWorld) {
+				WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
+				if (whetherTo) {
+					client.setHintArrow(starPoint);
+					break;
+				} else if (client.hasHintArrow() && client.getHintArrowPoint().equals(starPoint)) {
+					client.clearHintArrow();
 					break;
 				}
 			}
-		} else {
-			client.clearHintArrow();
 		}
 	}
 
