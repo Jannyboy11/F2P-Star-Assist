@@ -130,13 +130,12 @@ public class StarHuntPlugin extends Plugin {
 					return;
 				}
 
+				log.debug("received stars from webserver: " + stars);
+
 				clientThread.invoke(() -> {
 					starCache.addAll(stars);
 					updatePanel();
 				});
-
-				String message = stars.isEmpty() ? "There are no known live stars currently." : "A handful of stars is alive!";
-				log.debug(message);
 			});
 		}
 	}

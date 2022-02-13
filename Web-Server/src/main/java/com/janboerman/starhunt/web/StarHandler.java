@@ -36,41 +36,30 @@ class StarHandler extends AbstractHandler {
         this.starDatabase = starDatabase;
     }
 
-    private static String extractKey(String target, String endpoint) {
-        int endPointLength = endpoint.length();
-        if (target.length() < endPointLength + 2) return null;
-        if (target.charAt(endPointLength) != '/') return null;
-        if (target.charAt(endPointLength + 1) == '/') return null;
-
-        return target.substring(endPointLength + 1);
-    }
-
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         //TODO rate limit
 
-        match: {
-            if (target.endsWith(EndPoints.ALL_STARS)) {
-                String groupKey = extractKey(target, EndPoints.ALL_STARS);
-                if (groupKey == null) break match;
-                receiveRequestStars(request, response); baseRequest.setHandled(true); return;
-            } else if (target.endsWith(EndPoints.SEND_STAR)) {
-                String groupKey = extractKey(target, EndPoints.SEND_STAR);
-                if (groupKey == null) break match;
-                receiveSendStar(request, response); baseRequest.setHandled(true); return;
-            } else if (target.endsWith(EndPoints.UPDATE_STAR)) {
-                String groupKey = extractKey(target, EndPoints.UPDATE_STAR);
-                if (groupKey == null) break match;
-                receiveUpdateStar(request, response); baseRequest.setHandled(true); return;
-            } else if (target.endsWith(EndPoints.DELETE_STAR)) {
-                String groupKey = extractKey(target, EndPoints.DELETE_STAR);
-                if (groupKey == null) break match;
-                receiveDeleteStar(request, response); baseRequest.setHandled(true); return;
-            }
+        assert target != null;
+
+        if (target.endsWith(EndPoints.ALL_STARS)) {
+            receiveRequestStars(request, response);
+            baseRequest.setHandled(true);
+        } else if (target.endsWith(EndPoints.SEND_STAR)) {
+            receiveSendStar(request, response);
+            baseRequest.setHandled(true);
+        } else if (target.endsWith(EndPoints.UPDATE_STAR)) {
+            receiveUpdateStar(request, response);
+            baseRequest.setHandled(true);
+        } else if (target.equals(EndPoints.DELETE_STAR)) {
+            receiveDeleteStar(request, response);
+            baseRequest.setHandled(true);
         }
 
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        baseRequest.setHandled(true);
+        else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            baseRequest.setHandled(true);
+        }
     }
 
     private void receiveRequestStars(HttpServletRequest request, HttpServletResponse response) throws IOException {
