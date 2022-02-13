@@ -115,7 +115,7 @@ class StarHandler extends AbstractHandler {
                         //response
                         if (existing == null) {
                             //no need to reply with anything if the star is new.
-                            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                            response.setStatus(HttpServletResponse.SC_CREATED);
                         } else {
                             //reply with the currently existing star, if one already exists.
                             star = existing;
