@@ -43,7 +43,6 @@ class StarHandler extends AbstractHandler {
         assert target != null;
 
         if (target.endsWith(EndPoints.ALL_STARS)) {
-            System.out.println("DEBUG EndPoint.ALL_STARS reached!");
             receiveRequestStars(request, response);
             baseRequest.setHandled(true);
         } else if (target.endsWith(EndPoints.SEND_STAR)) {
@@ -81,9 +80,7 @@ class StarHandler extends AbstractHandler {
                         //response
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(APPLICATION_JSON);
-                        String starsJson = StarJson.crashedStarsJson(stars).toString();
-                        System.out.println("DEBUG crashed stars json: " + starsJson);
-                        response.getWriter().write(starsJson);
+                        response.getWriter().write(StarJson.crashedStarsJson(stars).toString());
                     }
                 } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

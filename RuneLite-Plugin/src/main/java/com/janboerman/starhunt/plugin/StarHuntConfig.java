@@ -95,17 +95,6 @@ public interface StarHuntConfig extends Config {
 
 	@ConfigItem(
 			position = 0,
-			keyName = "share found stars",
-			name = "Share found-by-me stars",
-			description = "Whether to share stars that you encounter in the world",
-			section = SHARING_SETTINGS_SECTION
-	)
-	default boolean shareFoundStars() {
-		return true;
-	}
-
-	@ConfigItem(
-			position = 1,
 			keyName = "share pvp-world stars",
 			name = "Share PVP-world stars",
 			description = "Whether to send stars in PVP-worlds",
@@ -116,7 +105,7 @@ public interface StarHuntConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 2,
+			position = 1,
 			keyName = "share wilderness stars",
 			name = "Share Wilderness stars",
 			description = "Whether to send stars in the Wilderness",
@@ -124,6 +113,17 @@ public interface StarHuntConfig extends Config {
 	)
 	default boolean shareWildernessStars() {
 		return false;
+	}
+
+	@ConfigItem(
+			position = 2,
+			keyName = "share found stars",
+			name = "Share found-by-me stars",
+			description = "Whether to share stars that you encounter in the world",
+			section = SHARING_SETTINGS_SECTION
+	)
+	default boolean shareFoundStars() {
+		return true;
 	}
 
 	@ConfigItem(

@@ -35,6 +35,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.WorldService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -68,7 +69,7 @@ public class StarHuntPlugin extends Plugin {
 	//populated manually
 	private final StarCache starCache;
 	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
-	private final Map<String, GroupKey> groups = new HashMap<>();						//TODO reload this on config change
+	private final Map<String, GroupKey> groups = new HashMap<>();
 
 	//populated right after construction
 	@Inject private Client client;
@@ -105,10 +106,8 @@ public class StarHuntPlugin extends Plugin {
 
 		clientToolbar.addNavigation(navButton);
 
-		groups.clear();
-		groups.putAll(loadGroups());
+		setGroups(loadGroups());
 
-		//TODO put this on a timer.
 		fetchStarList(CollectionConvert.toSet(groups.values()));
 
 		log.info("F2P Star Hunt started!");
@@ -127,19 +126,16 @@ public class StarHuntPlugin extends Plugin {
 			starFuture.whenCompleteAsync((stars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
-					return;
+				} else {
+					log.debug("received stars from webserver: " + stars);
+					clientThread.invoke(() -> {
+						starCache.addAll(stars);
+						updatePanel();
+					});
 				}
-
-				log.debug("received stars from webserver: " + stars);
-
-				clientThread.invoke(() -> {
-					starCache.addAll(stars);
-					updatePanel();
-				});
 			});
 		}
 	}
-
 
 	public void hopAndHint(CrashedStar star) {
 		int starWorld = star.getWorld();
@@ -189,9 +185,16 @@ public class StarHuntPlugin extends Plugin {
 		return groups;
 	}
 
-	//TODO call this again on config reload
+	private void setGroups(Map<String, GroupKey> groups) {
+		this.groups.clear();
+		this.groups.putAll(groups);
+	}
+
 	private Map<String, GroupKey> loadGroups() {
-		String groupsJson = config.groups();
+		return loadGroups(config.groups());
+	}
+
+	private Map<String, GroupKey> loadGroups(String groupsJson) {
 		JsonParser jsonParser = new JsonParser();
 		try {
 			JsonElement jsonElement = jsonParser.parse(groupsJson);
@@ -212,7 +215,7 @@ public class StarHuntPlugin extends Plugin {
 				return Collections.emptyMap();
 			}
 		} catch (RuntimeException e) {
-			log.error("invalid groups json", e);
+			log.error("Invalid groups JSON in config", e);
 			return Collections.emptyMap();
 		}
 	}
@@ -392,6 +395,21 @@ public class StarHuntPlugin extends Plugin {
 	//
 	// ======= Event Listeners =======
 	//
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event) {
+		if ("F2P Star Hunt".equals(event.getGroup())) {
+			if ("groups".equals(event.getKey())) {
+				try {
+					String groupsJson = event.getNewValue();
+					Map<String, GroupKey> groups = loadGroups(groupsJson);
+					setGroups(groups);
+				} catch (RuntimeException e) {
+					log.error("Invalid groups JSON in config", e);
+				}
+			}
+		}
+	}
 
 	@Subscribe
 	public void onGameTick(GameTick event) {
