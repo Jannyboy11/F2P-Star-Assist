@@ -50,19 +50,19 @@ class StarHandler extends AbstractHandler {
         //TODO rate limit
 
         match: {
-            if (target.equals(EndPoints.ALL_STARS)) {
+            if (target.endsWith(EndPoints.ALL_STARS)) {
                 String groupKey = extractKey(target, EndPoints.ALL_STARS);
                 if (groupKey == null) break match;
                 receiveRequestStars(request, response); baseRequest.setHandled(true); return;
-            } else if (target.equals(EndPoints.SEND_STAR)) {
+            } else if (target.endsWith(EndPoints.SEND_STAR)) {
                 String groupKey = extractKey(target, EndPoints.SEND_STAR);
                 if (groupKey == null) break match;
                 receiveSendStar(request, response); baseRequest.setHandled(true); return;
-            } else if (target.equals(EndPoints.UPDATE_STAR)) {
+            } else if (target.endsWith(EndPoints.UPDATE_STAR)) {
                 String groupKey = extractKey(target, EndPoints.UPDATE_STAR);
                 if (groupKey == null) break match;
                 receiveUpdateStar(request, response); baseRequest.setHandled(true); return;
-            } else if (target.equals(EndPoints.DELETE_STAR)) {
+            } else if (target.endsWith(EndPoints.DELETE_STAR)) {
                 String groupKey = extractKey(target, EndPoints.DELETE_STAR);
                 if (groupKey == null) break match;
                 receiveDeleteStar(request, response); baseRequest.setHandled(true); return;

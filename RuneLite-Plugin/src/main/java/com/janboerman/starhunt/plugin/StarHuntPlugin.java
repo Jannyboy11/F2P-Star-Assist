@@ -1,5 +1,6 @@
 package com.janboerman.starhunt.plugin;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.swing.*;
 
@@ -93,7 +94,7 @@ public class StarHuntPlugin extends Plugin {
 	@Override
 	protected void startUp() throws Exception {
 		this.starClient = injector.getInstance(StarClient.class);
-		this.panel = new StarHuntPanel(this, config);
+		this.panel = new StarHuntPanel(this, config, clientThread);
 		BufferedImage icon = ImageUtil.loadImageResource(StarHuntPlugin.class, "/icon.png");
 		this.navButton = NavigationButton.builder()
 				.tooltip("F2P Star Hunt")
@@ -181,7 +182,7 @@ public class StarHuntPlugin extends Plugin {
 
 	private Set<GroupKey> getOwningGroups(StarKey starKey) {
 		Set<GroupKey> groups = owningGroups.get(starKey);
-		if (groups == null) return Collections.emptySet();
+		if (groups == null) groups = Collections.emptySet();
 		return groups;
 	}
 
@@ -316,12 +317,19 @@ public class StarHuntPlugin extends Plugin {
 		log.debug("reporting star gone: " + starKey);
 		//is there ever a situation in which we don't want to broadcast, regardless of the config?
 
-		starCache.remove(starKey);
-		Set<GroupKey> broadcastGroups = owningGroups.remove(starKey);
+		Set<GroupKey> broadcastGroups = removeStar(starKey);
 		updatePanel();
 		if (broadcast && shouldBroadcastStar(starKey) && broadcastGroups != null) {
 			starClient.deleteStar(broadcastGroups, starKey);
 		}
+	}
+
+	@Nullable
+	Set<GroupKey> removeStar(StarKey starKey) {
+		assert client.isClientThread();
+
+		starCache.remove(starKey);
+		return owningGroups.remove(starKey);
 	}
 
 	private void logServerError(Throwable ex) {

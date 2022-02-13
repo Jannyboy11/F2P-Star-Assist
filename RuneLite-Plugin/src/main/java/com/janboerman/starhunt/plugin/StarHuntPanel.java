@@ -1,15 +1,16 @@
 package com.janboerman.starhunt.plugin;
 
 import com.janboerman.starhunt.common.CrashedStar;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.ui.components.colorpicker.ColorPickerManager;
-import net.runelite.client.ui.components.colorpicker.RuneliteColorPicker;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -27,11 +28,13 @@ public class StarHuntPanel extends PluginPanel {
 
     private final StarHuntPlugin plugin;
     private final StarHuntConfig config;
+    private final ClientThread clientThread;
     private final List<CrashedStar> starList = new ArrayList<>(2);
 
-    public StarHuntPanel(StarHuntPlugin plugin, StarHuntConfig config) {
+    public StarHuntPanel(StarHuntPlugin plugin, StarHuntConfig config, ClientThread clientThread) {
         this.plugin = plugin;
         this.config = config;
+        this.clientThread = clientThread;
 
         setLayout(new GridLayout(0, 1));
 
@@ -52,7 +55,7 @@ public class StarHuntPanel extends PluginPanel {
             //re-paint
             for (CrashedStar star : this.starList) {
                 //TODO don't add to the root panel, use a separate panel instead, that itself is added to the root panel.
-                add(new StarRow(star), BorderLayout.SOUTH);
+                add(new StarHuntPanelRow(star), BorderLayout.SOUTH);
             }
         }
 
@@ -60,27 +63,42 @@ public class StarHuntPanel extends PluginPanel {
         repaint();
     }
 
-    private class StarRow extends JPanel {
+    private class StarHuntPanelRow extends JPanel {
+
+        private final JMenuItem removeMenuItem;
 
         private final CrashedStar star;
 
         private Color lastBackGround;
 
-        StarRow(CrashedStar star) {
+        StarHuntPanelRow(CrashedStar star) {
             this.star = star;
             setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
 
             setLayout(new BorderLayout());
-            setBorder(new EmptyBorder(2, 0, 2, 0));
+            setBorder(new EmptyBorder(2, 2, 2, 2));
 
             setToolTipText("Double click to hop to this world.");
 
-            String text = "T" + star.getTier().getSize() + " W" + star.getWorld() + " " + star.getLocation();   //TODO friendlier-name for the location?
+            String text = "T" + star.getTier().getSize() + " W" + star.getWorld() + " " + star.getLocation();
             JLabel textLabel = new JLabel(text);
             textLabel.setFont(FontManager.getRunescapeSmallFont());
             add(textLabel);
 
-            //TODO right-click->remove option (only updates de list visually)
+            //right click -> remove option
+            removeMenuItem = new JMenuItem("Remove");
+            removeMenuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    starList.remove(star);
+                    setStars(new ArrayList<>(starList));    //causes re-paint
+                    clientThread.invoke(() -> plugin.removeStar(star.getKey()));    //remove from local cache
+                }
+            });
+            final JPopupMenu popupMenu = new JPopupMenu();
+            popupMenu.setBorder(new EmptyBorder(2, 2, 2, 2));
+            popupMenu.add(removeMenuItem);
+            setComponentPopupMenu(popupMenu);
 
             this.addMouseListener(new MouseAdapter() {
                 @Override
