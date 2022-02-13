@@ -138,6 +138,8 @@ public class StarHuntPlugin extends Plugin {
 	}
 
 	public void hopAndHint(CrashedStar star) {
+		assert !client.isClientThread();
+
 		int starWorld = star.getWorld();
 		int currentWorld = client.getWorld();
 
@@ -149,13 +151,27 @@ public class StarHuntPlugin extends Plugin {
 					if (world != null) {
 						client.hopToWorld(world);
 					}
+
+					if (config.hintArrowEnabled()) {
+						WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
+						client.setHintArrow(starPoint);
+					}
 				});
 			}
 		}
+	}
 
-		if (config.hintArrowEnabled()) {
-			WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
-			clientThread.invoke(() -> client.setHintArrow(starPoint));
+	public void showHintArrow(boolean whetherTo) {
+		if (whetherTo) {
+			int playerWorld = client.getWorld();
+			for (CrashedStar star : starCache.getStars()) {
+				if (star.getWorld() == playerWorld) {
+					client.setHintArrow(StarPoints.fromLocation(star.getLocation()));
+					break;
+				}
+			}
+		} else {
+			client.clearHintArrow();
 		}
 	}
 
@@ -401,12 +417,14 @@ public class StarHuntPlugin extends Plugin {
 		if ("F2P Star Hunt".equals(event.getGroup())) {
 			if ("groups".equals(event.getKey())) {
 				try {
-					String groupsJson = event.getNewValue();
-					Map<String, GroupKey> groups = loadGroups(groupsJson);
-					setGroups(groups);
+					setGroups(loadGroups(event.getNewValue()));
 				} catch (RuntimeException e) {
 					log.error("Invalid groups JSON in config", e);
 				}
+			}
+
+			else if ("hint enabled".equals(event.getKey())) {
+				showHintArrow(Boolean.parseBoolean(event.getNewValue()));
 			}
 		}
 	}
