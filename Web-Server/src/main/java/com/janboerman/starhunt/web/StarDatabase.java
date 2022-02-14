@@ -80,12 +80,11 @@ public class StarDatabase {
         assert groupKey != null;
         assert starUpdate != null;
 
-        StarCache starCache = getStarCache(groupKey);
-
         StarKey starKey = starUpdate.getKey();
         StarTier newTier = starUpdate.getTier();
 
-        CrashedStar existingStar = starCache.get(starKey);
+        CrashedStar existingStar = get(groupKey, starKey);
+
         if (existingStar != null) {
             if (existingStar.getTier().compareTo(newTier) > 0) {
                 //only update if the currently known tier is higher
