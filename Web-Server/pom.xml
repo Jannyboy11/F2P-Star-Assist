@@ -16,6 +16,8 @@
     </properties>
 
     <build>
+        <finalName>${parent.artifactId}-${project.artifactId}</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
