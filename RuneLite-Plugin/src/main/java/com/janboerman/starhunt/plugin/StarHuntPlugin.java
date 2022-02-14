@@ -1,37 +1,15 @@
 package com.janboerman.starhunt.plugin;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.swing.*;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.google.inject.Provides;
-import com.janboerman.starhunt.common.CrashedStar;
-import com.janboerman.starhunt.common.GroupKey;
-import com.janboerman.starhunt.common.RunescapeUser;
-import com.janboerman.starhunt.common.StarCache;
-import com.janboerman.starhunt.common.StarKey;
-import com.janboerman.starhunt.common.StarLocation;
-import com.janboerman.starhunt.common.StarTier;
+import com.janboerman.starhunt.common.*;
 
 import com.janboerman.starhunt.common.lingo.StarLingo;
 import com.janboerman.starhunt.common.util.CollectionConvert;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.GameObject;
-import net.runelite.api.GameState;
-import net.runelite.api.Tile;
-import net.runelite.api.World;
-import net.runelite.api.coords.LocalPoint;
-import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameObjectDespawned;
-import net.runelite.api.events.GameObjectSpawned;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
+import net.runelite.api.*;
+import net.runelite.api.coords.*;
+import net.runelite.api.events.*;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -50,17 +28,13 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.*;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 
 @Slf4j
 @PluginDescriptor(name = "F2P Star Hunt")
@@ -84,7 +58,11 @@ public class StarHuntPlugin extends Plugin {
 	private NavigationButton navButton;
 
 	public StarHuntPlugin() {
-		this.starCache = new StarCache();
+		this.starCache = new StarCache(removalNotification -> {
+			if (removalNotification.wasEvicted()) {
+				clientThread.invokeLater(this::updatePanel);
+			}
+		});
 	}
 
 	@Provides
@@ -108,7 +86,7 @@ public class StarHuntPlugin extends Plugin {
 
 		setGroups(loadGroups());
 
-		fetchStarList(CollectionConvert.toSet(groups.values()));
+		fetchStarList(CollectionConvert.toSet(groups.values())); //TODO put this on a timer?
 
 		log.info("F2P Star Hunt started!");
 	}
@@ -288,14 +266,13 @@ public class StarHuntPlugin extends Plugin {
 		log.debug("reporting new star: " + star);
 
 		final StarKey starKey = star.getKey();
-		final boolean isNew = starCache.add(star);
+		final boolean isNew = starCache.add(star) == null;
 		if (isNew) {
 			updatePanel();
 			owningGroups.put(starKey, groupsToShareTheStarWith);
 		}
 
 		if (config.shareFoundStars() && shouldBroadcastStar(starKey)) {
-			
 			CompletableFuture<Optional<CrashedStar>> upToDateStar = starClient.sendStar(groupsToShareTheStarWith, star);
 			upToDateStar.whenCompleteAsync((optionalStar, ex) -> {
 				if (ex != null) {

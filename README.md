@@ -1,13 +1,13 @@
 # F2P StarHunt
 
-A plugin for crowd-sourcing shooting stars in F2P.
+A plugin for crowdsourcing shooting stars in F2P.
 
 ## Features
 
 - Sidebar panel with list of known stars.
     - Double-click a star entry to hop to the world of a star.
     - Right-click to remove entries.
-- Analyzes chat message for star calls.
+- Analyzes chat messages for star calls.
 - Arrow hint for a star found in your world.
 - Optional: Communication with a webserver to share your stars with others.
 

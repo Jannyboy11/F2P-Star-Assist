@@ -3,7 +3,6 @@ package com.janboerman.starhunt.web;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.janboerman.starhunt.common.CrashedStar;
 import com.janboerman.starhunt.common.GroupKey;
@@ -51,7 +50,7 @@ class StarHandler extends AbstractHandler {
         } else if (target.endsWith(EndPoints.UPDATE_STAR)) {
             receiveUpdateStar(request, response);
             baseRequest.setHandled(true);
-        } else if (target.equals(EndPoints.DELETE_STAR)) {
+        } else if (target.endsWith(EndPoints.DELETE_STAR)) {
             receiveDeleteStar(request, response);
             baseRequest.setHandled(true);
         }
@@ -105,7 +104,7 @@ class StarHandler extends AbstractHandler {
                         //apply update
                         CrashedStar existing = null;
                         for (GroupKey groupKey : groups) {
-                            CrashedStar ex = starDatabase.addIfAbsent(groupKey, star);
+                            CrashedStar ex = starDatabase.add(groupKey, star);
                             //find the 'smallest' existing star
                             if ((existing == null) || (ex != null && ex.getTier().getSize() < existing.getTier().getSize())) {
                                 existing = ex;  //can still be null - that is fine.
@@ -151,25 +150,20 @@ class StarHandler extends AbstractHandler {
                         CrashedStar resultStar = null;
 
                         for (GroupKey groupKey : groups) {
-                            CrashedStar existingStar = starDatabase.get(groupKey, starKey);
-
                             //apply update
-                            if (existingStar != null) {
-                                if (existingStar.getTier().compareTo(newTier) > 0) {
-                                    //only update if the currently known tier is higher than the newly-received tier.
-                                    existingStar.setTier(newTier);
-                                }
-                            } else {
-                                //this shouldn't really happen.
-                                existingStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown()/*TODO include User in the StarUpdate packet?*/);
-                                starDatabase.add(groupKey, existingStar);
-                            }
+                            CrashedStar updatedStar = starDatabase.update(groupKey, starUpdate);
 
-                            resultStar = existingStar;
+                            if (updatedStar != null) {
+                                //resultStar becomes the star with the lowest tier
+                                if (resultStar == null || resultStar.getTier().compareTo(updatedStar.getTier()) > 0) {
+                                    resultStar = updatedStar;
+                                }
+                            }
                         }
 
                         if (resultStar == null) {
-                            resultStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown()/*TODO include User in the StarUpdate packet?*/);
+                            //if the star was unknown to all of the groups
+                            resultStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
                         }
 
                         //response
@@ -199,8 +193,8 @@ class StarHandler extends AbstractHandler {
                         Set<GroupKey> groups = starPacket.getGroups();
                         StarKey starKey = (StarKey) starPacket.getPayload();
 
+                        //apply update
                         for (GroupKey groupKey : groups) {
-                            //apply update
                             starDatabase.remove(groupKey, starKey);
                         }
                     }
