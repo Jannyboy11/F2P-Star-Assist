@@ -77,7 +77,7 @@ public class StarLingo {
             return StarLocation.DWARVEN_MINE;
         if (containsAnyIgnoreCase(text, "falador", "fally", "mining guild"))
             return StarLocation.MINING_GUILD;
-        if (containsIgnoreCase(text, "crafting guild"))
+        if (containsIgnoreCase(text, "craft") && containsIgnoreCase(text, "guild"))
             return StarLocation.CRAFTING_GUILD;
         if (containsIgnoreCase(text, "rim"))
             return StarLocation.RIMMINGTON_MINE;
