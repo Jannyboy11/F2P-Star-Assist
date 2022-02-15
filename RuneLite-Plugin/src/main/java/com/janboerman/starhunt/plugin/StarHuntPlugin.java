@@ -43,11 +43,10 @@ import javax.swing.SwingUtilities;
 @PluginDescriptor(name = "F2P Star Hunt")
 public class StarHuntPlugin extends Plugin {
 
-	//populated manually
+	//populated at construction
 	private final StarCache starCache;
 	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
 	private final Map<String, GroupKey> groups = new HashMap<>();
-	private ScheduledExecutorService fetcherTimer;
 
 	//populated right after construction
 	@Inject private Client client;
@@ -58,6 +57,7 @@ public class StarHuntPlugin extends Plugin {
 
 	//populated on start-up
 	private StarClient starClient;
+	private ScheduledExecutorService fetcherTimer;
 	private StarHuntPanel panel;
 	private NavigationButton navButton;
 
