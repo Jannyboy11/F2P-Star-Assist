@@ -83,10 +83,6 @@ val SettingsDotGradle =
 }
 
 @main def push(): Unit = {
-    
-}
-
-@main def forcePush(): Unit = {
 
     val rootDir = os.pwd
     if (!rootDir.endsWith(os.RelPath("F2P-StarHunt"))) {
