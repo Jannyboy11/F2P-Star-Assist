@@ -7,3 +7,5 @@ target/
 Common/target/
 Discord-Bot/target/
 RunteLite-Plugin/target/
+PluginHub-Project-Generator/target
+PluginHub-Project/
