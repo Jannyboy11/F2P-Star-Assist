@@ -13,6 +13,7 @@ import com.janboerman.starhunt.common.User;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -23,7 +24,7 @@ public class StarDatabase {
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofHours(2).plusMinutes(30))
             .build();
-    private final WeakHashMap<StarKey, GroupKey/*TODO Set<GroupKey>*/> starsFoundByGroup = new WeakHashMap<>();
+    private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
     private final StarListener starListener;
 
     public StarDatabase(StarListener listener) {
@@ -33,9 +34,11 @@ public class StarDatabase {
     private StarCache newStarCache() {
         return new StarCache(removedEvent -> {
             StarKey starKey = removedEvent.getKey();
-            GroupKey groupKey = starsFoundByGroup.get(starKey);
-            if (groupKey != null) {
-                starListener.onRemove(groupKey, starKey); //notify discord bot
+            Set<GroupKey> groupKeys = owningGroups.get(starKey);
+            if (groupKeys != null) {
+                for (GroupKey groupKey : groupKeys) {
+                    starListener.onRemove(groupKey, starKey); //notify discord bot
+                }
             }
         });
     }
@@ -49,29 +52,48 @@ public class StarDatabase {
     }
 
     //returns the existing star, or null if no star existed with that StarKey (like Map.put)
-    public synchronized CrashedStar add(GroupKey groupKey/*TODO Set<GroupKey>*/, CrashedStar crashedStar) {
-        assert groupKey != null;
+    public synchronized CrashedStar add(Set<GroupKey> groupKeys, CrashedStar crashedStar) {
+        assert groupKeys != null;
         assert crashedStar != null;
 
         StarKey starKey = crashedStar.getKey();
-        GroupKey owningGroup = starsFoundByGroup.computeIfAbsent(starKey, k -> groupKey);
+        Set<GroupKey> owningGroups = this.owningGroups.get(starKey);
 
-        if (!owningGroup.equals(groupKey)) {
-            //another group already found the star first - pretend the star is new
-            return null;
-        } else {
-            //groupKey's group is the owner of this star
-            StarCache starCache = getStarCache(groupKey);
-            CrashedStar existingStar = starCache.add(crashedStar);
-
+        if (owningGroups == null) {
+            //star didn't have an owner yet.
+            this.owningGroups.put(starKey, owningGroups);
             //notify listener
-            if (existingStar == null) {
+            for (GroupKey groupKey : groupKeys) {
                 starListener.onAdd(groupKey, crashedStar);
-            } else {
-                starListener.onUpdate(groupKey, new StarUpdate(crashedStar.getKey(), crashedStar.getTier()));
+            }
+            return null;
+        } else if (owningGroups.containsAll(groupKeys)) {
+            //all groups are the owners of this star
+            CrashedStar existingStar = null;
+
+            for (GroupKey groupKey : owningGroups) {
+                StarCache starCache = getStarCache(groupKey);
+                CrashedStar ex = starCache.add(crashedStar);
+
+                //notify listener and calculate lowest existing star
+                if (ex == null) {
+                    starListener.onAdd(groupKey, crashedStar);
+                } else {
+                    if (existingStar == null) {
+                        existingStar = ex;
+                    } else {
+                        if (existingStar.getTier().getSize() > ex.getTier().getSize()) {
+                            existingStar = ex;
+                        }
+                    }
+                    starListener.onUpdate(groupKey, new StarUpdate(starKey, crashedStar.getTier()));
+                }
             }
 
             return existingStar;
+        } else {
+            //another group already found the star first - pretend the star is new
+            return null;
         }
     }
 
@@ -97,7 +119,7 @@ public class StarDatabase {
             //update for a non-existing star. just pretend it is new.
             existingStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
             //add it to cache
-            add(groupKey, existingStar);
+            add(Set.of(groupKey), existingStar);
             //if a different group already found the star, then add simply returns null without updating the cache.
             //yet, we still want to return the 'new' star.
             return existingStar;
@@ -108,8 +130,8 @@ public class StarDatabase {
         assert groupKey != null;
         assert starKey != null;
 
-        GroupKey existingGroup = starsFoundByGroup.get(starKey);
-        if (!groupKey.equals(existingGroup)) {
+        Set<GroupKey> existingGroups = owningGroups.get(starKey);
+        if (existingGroups == null || !existingGroups.contains(groupKey)) {
             return null;
         } else {
             return getStarCache(groupKey).get(starKey);
@@ -126,7 +148,7 @@ public class StarDatabase {
         //perform operation
         starCache.forceAdd(crashedStar);
         //mark as owned if this is the first group that finds this star
-        starsFoundByGroup.putIfAbsent(starKey, groupKey);
+        owningGroups.computeIfAbsent(starKey, k -> new HashSet<>()).add(groupKey);
 
         //notify listener
         if (starCache.contains(starKey)) {
@@ -143,7 +165,10 @@ public class StarDatabase {
         StarCache starCache = groupCaches.getIfPresent(groupKey);
         if (starCache == null) return false;
         boolean removed = starCache.remove(starKey) != null;
-        if (removed) starsFoundByGroup.remove(starKey, groupKey);
+        if (removed) {
+            Set<GroupKey> groups = owningGroups.remove(starKey);
+            if (groups != null) groups.remove(groupKey);
+        }
         return removed;
         //don't notify starListener here because we're already using the RemovalListener.
     }

@@ -102,14 +102,7 @@ class StarHandler extends AbstractHandler {
                         CrashedStar star = (CrashedStar) starPacket.getPayload();
 
                         //apply update
-                        CrashedStar existing = null;
-                        for (GroupKey groupKey : groups) {
-                            CrashedStar ex = starDatabase.add(groupKey, star);
-                            //find the 'smallest' existing star
-                            if ((existing == null) || (ex != null && ex.getTier().getSize() < existing.getTier().getSize())) {
-                                existing = ex;  //can still be null - that is fine.
-                            }
-                        }
+                        CrashedStar existing = starDatabase.add(groups, star);
 
                         //response
                         if (existing == null) {

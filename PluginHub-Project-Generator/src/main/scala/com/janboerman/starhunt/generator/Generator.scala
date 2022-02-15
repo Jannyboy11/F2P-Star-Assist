@@ -82,6 +82,8 @@ val SettingsDotGradle =
 
 }
 
+//or, alternatively, push the submodule using 'git push --recurse-submodules=on-demand'
+//as described at: https://git-scm.com/book/en/v2/Git-Tools-Submodules
 @main def push(): Unit = {
 
     val rootDir = os.pwd
@@ -92,7 +94,7 @@ val SettingsDotGradle =
 
     val gradleProjectDir = rootDir/PluginHubProject
     os.proc("git", "add", ".").call(gradleProjectDir)
-    os.proc("git", "commit", "-m", "\"generated commit\"").call(gradleProjectDir)
+    os.proc("git", "commit", "-m", "\"Generate F2P-StarHunt project compatible with plugin hub\"").call(gradleProjectDir)
     os.proc("git", "branch", "-M", "master").call(gradleProjectDir)
     os.proc("git", "remote", "add", "f2p-starhunt", "git@github.com:Jannyboy11/F2P-StarHunt-PluginHub.git").call(gradleProjectDir)
     os.proc("git", "push", "--set-upstream", "f2p-starhunt", "master", "--force").call(gradleProjectDir)
