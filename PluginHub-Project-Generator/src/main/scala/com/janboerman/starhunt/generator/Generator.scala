@@ -46,6 +46,13 @@ val SettingsDotGradle =
 
 @main def generate(): Unit = {
 
+    copyTemplate()
+    copySources()
+
+}
+
+@main def copyTemplate(): Unit = {
+
     val rootDir = os.pwd
     if (!rootDir.endsWith(os.RelPath("F2P-StarHunt"))) {
         println("Please run this script from root directory (F2P-StarHunt)")
@@ -60,11 +67,25 @@ val SettingsDotGradle =
     os.remove.all(gradleProjectDir/"src"/"test"/"java"/"com")
     os.remove.all(gradleProjectDir/"src"/"main"/"java"/"com")
 
+}
+
+@main def copySources(): Unit = {
+
+    val rootDir = os.pwd
+    if (!rootDir.endsWith(os.RelPath("F2P-StarHunt"))) {
+        println("Please run this script from root directory (F2P-StarHunt)")
+        return
+    }
+
+    val pluginDir = rootDir/PluginProject
+    val commonDir = rootDir/CommonProject
+    val gradleProjectDir = rootDir/PluginHubProject
+
     val pluginSrc = pluginDir/"src"
     val commonSrc = commonDir/"src"
     val targetSrc = gradleProjectDir/"src"
-    os.copy(from = commonSrc, to = targetSrc, mergeFolders = true)
-    os.copy(from = pluginSrc, to = targetSrc, mergeFolders = true)
+    os.copy(from = commonSrc, to = targetSrc, mergeFolders = true, replaceExisting = true)
+    os.copy(from = pluginSrc, to = targetSrc, mergeFolders = true, replaceExisting = true)
 
     val targetReadMe = gradleProjectDir/"README.md"
     os.copy(rootDir/"README.md", targetReadMe, replaceExisting = true)
