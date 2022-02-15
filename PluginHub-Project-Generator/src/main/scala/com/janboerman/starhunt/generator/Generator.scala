@@ -4,12 +4,6 @@ val PluginHubProject = "PluginHub-Project"
 val PluginProject = "RuneLite-Plugin"
 val CommonProject = "Common";
 
-@main def main(): Unit = {
-    //TODO clear()
-    generate()
-    push()
-}
-
 @main def generate(): Unit = {
 
     val rootDir = os.pwd

@@ -18,3 +18,6 @@ Prerequisites:
 - [Apache Maven](https://maven.apache.org/)
 
 Then run `mvn clean package` to generate the jar files.
+
+## PluginHub-compatible repo
+Is located [here](https://github.com/Jannyboy11/F2P-StarHunt-PluginHub).
