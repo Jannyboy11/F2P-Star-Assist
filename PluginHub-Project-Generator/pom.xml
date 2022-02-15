@@ -34,20 +34,12 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala3-library_3</artifactId>
             <version>3.1.1</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.lihaoyi</groupId>
             <artifactId>os-lib_3</artifactId>
             <version>0.8.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.janboerman.f2p-starhunt</groupId>
-            <artifactId>RuneLite-Plugin</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
