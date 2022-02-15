@@ -23,7 +23,7 @@ public class StarDatabase {
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofHours(2).plusMinutes(30))
             .build();
-    private final WeakHashMap<StarKey, GroupKey> starsFoundByGroup = new WeakHashMap<>();
+    private final WeakHashMap<StarKey, GroupKey/*TODO Set<GroupKey>*/> starsFoundByGroup = new WeakHashMap<>();
     private final StarListener starListener;
 
     public StarDatabase(StarListener listener) {
@@ -49,7 +49,7 @@ public class StarDatabase {
     }
 
     //returns the existing star, or null if no star existed with that StarKey (like Map.put)
-    public synchronized CrashedStar add(GroupKey groupKey, CrashedStar crashedStar) {
+    public synchronized CrashedStar add(GroupKey groupKey/*TODO Set<GroupKey>*/, CrashedStar crashedStar) {
         assert groupKey != null;
         assert crashedStar != null;
 

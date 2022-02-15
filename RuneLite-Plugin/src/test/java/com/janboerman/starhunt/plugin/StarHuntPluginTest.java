@@ -1,6 +1,5 @@
-package com.janboerman.starhunt;
+package com.janboerman.starhunt.plugin;
 
-import com.janboerman.starhunt.plugin.StarHuntPlugin;
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
