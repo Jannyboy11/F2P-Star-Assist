@@ -5,7 +5,7 @@ import com.google.inject.Provides;
 import com.janboerman.starhunt.common.*;
 
 import com.janboerman.starhunt.common.lingo.StarLingo;
-import com.janboerman.starhunt.common.util.CollectionConvert;
+import static com.janboerman.starhunt.common.util.CollectionConvert.toSet;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.*;
@@ -30,6 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.*;
 
 import javax.annotation.Nullable;
@@ -44,6 +47,7 @@ public class StarHuntPlugin extends Plugin {
 	private final StarCache starCache;
 	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
 	private final Map<String, GroupKey> groups = new HashMap<>();
+	private ScheduledExecutorService fetcherTimer;
 
 	//populated right after construction
 	@Inject private Client client;
@@ -86,7 +90,10 @@ public class StarHuntPlugin extends Plugin {
 
 		setGroups(loadGroups());
 
-		fetchStarList(CollectionConvert.toSet(groups.values())); //TODO put this on a timer?
+		fetcherTimer = Executors.newSingleThreadScheduledExecutor();
+		fetcherTimer.scheduleAtFixedRate(() -> {
+			clientThread.invoke(() -> fetchStarList(toSet(groups.values())));
+		}, 0, 15, TimeUnit.MINUTES);
 
 		log.info("F2P Star Hunt started!");
 	}
@@ -94,6 +101,8 @@ public class StarHuntPlugin extends Plugin {
 	@Override
 	protected void shutDown() throws Exception {
 		clientToolbar.removeNavigation(navButton);
+		fetcherTimer.shutdownNow();
+		fetcherTimer = null;
 
 		log.info("F2P Star Hunt stopped!");
 	}
@@ -107,8 +116,9 @@ public class StarHuntPlugin extends Plugin {
 				} else {
 					log.debug("received stars from webserver: " + stars);
 					clientThread.invoke(() -> {
-						starCache.addAll(stars);
-						updatePanel();
+						boolean foundNew = starCache.addAll(stars);
+						if (foundNew)
+							updatePanel();
 					});
 				}
 			});
