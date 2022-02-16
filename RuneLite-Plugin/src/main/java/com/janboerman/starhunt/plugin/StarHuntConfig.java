@@ -139,7 +139,7 @@ public interface StarHuntConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 5,
+			position = 4,
 			keyName = "share private chat calls",
 			name = "Share private chat calls with group:",
 			description = "Share private chat calls with your group",
@@ -150,7 +150,7 @@ public interface StarHuntConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 7,
+			position = 5,
 			keyName = "share friends chat calls",
 			name = "Share friends chat calls with group:",
 			description = "Share friends chat calls with your group",
@@ -161,7 +161,7 @@ public interface StarHuntConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 9,
+			position = 6,
 			keyName = "share clan chat calls",
 			name = "Share clan chat calls with group:",
 			description = "Share clan chat calls with your group",
@@ -172,7 +172,7 @@ public interface StarHuntConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 11,
+			position = 7,
 			keyName = "share public chat calls",
 			name = "Share public chat calls with group:",
 			description = "Share public chat calls with your group",
@@ -197,11 +197,14 @@ public interface StarHuntConfig extends Config {
 	)
 	public static final String CHAT_SETTINGS_SECTION = "Chat Settings";
 
+	//																							\\
+	//																							\\
+
 	@ConfigItem(
 			position = 1,
 			keyName = "clan chat",
-			name = "Enable clan chat integration",
-			description = "Analyze clan chat for possible star calls",
+			name = "Interpret clan chat star calls",
+			description = "Check whether clan chat messages contain star calls",
 			section = CHAT_SETTINGS_SECTION
 	)
 	default boolean interpretClanChat() {
@@ -211,8 +214,8 @@ public interface StarHuntConfig extends Config {
 	@ConfigItem(
 			position = 2,
 			keyName = "friends chat",
-			name = "Enable friends chat integration",
-			description = "Analyze friends chat for possible star calls",
+			name = "Interpret friends chat star calls",
+			description = "Check whether friends chat messages contain star calls",
 			section = CHAT_SETTINGS_SECTION
 	)
 	default boolean interpretFriendsChat() {
@@ -222,8 +225,8 @@ public interface StarHuntConfig extends Config {
 	@ConfigItem(
 			position = 3,
 			keyName = "private chat",
-			name = "Enable private chat integration",
-			description = "Analyze private chat for possible star calls",
+			name = "Interpret private chat star calls",
+			description = "Check whether private chat messages contain star calls",
 			section = CHAT_SETTINGS_SECTION
 	)
 	default boolean interpretPrivateChat() {
@@ -233,8 +236,8 @@ public interface StarHuntConfig extends Config {
 	@ConfigItem(
 			position = 4,
 			keyName = "public chat",
-			name = "Enable public chat integration",
-			description = "Analyze public chat for possible star calls",
+			name = "Interpret public chat star calls",
+			description = "Check whether public chat messages contain star calls",
 			section = CHAT_SETTINGS_SECTION
 	)
 	default boolean interpretPublicChat() {
