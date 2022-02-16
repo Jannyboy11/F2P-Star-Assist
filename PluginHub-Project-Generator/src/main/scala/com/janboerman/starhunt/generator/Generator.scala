@@ -6,19 +6,6 @@ val PluginHubProject = "PluginHub-Project"
 val PluginProject = "RuneLite-Plugin"
 val CommonProject = "Common";
 
-private def checkDirs(): Option[(os.Path, os.Path, os.Path, os.Path)] = {
-    val rootDir = os.pwd
-    if (!rootDir.endsWith(os.RelPath("F2P-StarHunt"))) {
-        println("Please run this script from root directory (F2P-StarHunt)")
-        return None
-    }
-
-    val pluginDir = rootDir/PluginProject
-    val commonDir = rootDir/CommonProject
-    val gradleProjectDir = rootDir/PluginHubProject
-    Some((rootDir, pluginDir, commonDir, gradleProjectDir))
-}
-
 @main def generate(): Unit = checkDirs() match {
     case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
         copySources(rootDir, pluginDir, commonDir, gradleProjectDir)
@@ -32,18 +19,30 @@ private def checkDirs(): Option[(os.Path, os.Path, os.Path, os.Path)] = {
     case None =>
 }
 
-private def copyTemplate(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path, gradleProjectDir: os.Path): Unit = {
-    os.proc("git", "clone", "https://github.com/runelite/example-plugin.git", PluginHubProject).call(rootDir)
-    os.remove.all(gradleProjectDir/"src"/"test"/"java"/"com")
-    os.remove.all(gradleProjectDir/"src"/"main"/"java"/"com")
-}
-
 // I probably want to use the maven exec plugin and define the main class in the pom.xml
 // https://www.mojohaus.org/exec-maven-plugin/
 @main def copySources(): Unit = checkDirs() match {
     case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
         copySources(rootDir, pluginDir, commonDir, gradleProjectDir)
     case None =>
+}
+
+//or, alternatively, push the submodule using 'git push --recurse-submodules=on-demand'
+//as described at: https://git-scm.com/book/en/v2/Git-Tools-Submodules
+@main def push(): Unit = checkDirs() match {
+    case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
+        os.proc("git", "add", ".").call(gradleProjectDir)
+        os.proc("git", "commit", "-m", "\"Generate F2P-StarHunt project compatible with plugin hub\"").call(gradleProjectDir)
+        os.proc("git", "branch", "-M", "master").call(gradleProjectDir)
+        os.proc("git", "remote", "add", "f2p-starhunt", "git@github.com:Jannyboy11/F2P-StarHunt-PluginHub.git").call(gradleProjectDir)
+        os.proc("git", "push", "--set-upstream", "f2p-starhunt", "master", "--force").call(gradleProjectDir)
+    case None =>
+}
+
+private def copyTemplate(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path, gradleProjectDir: os.Path): Unit = {
+    os.proc("git", "clone", "https://github.com/runelite/example-plugin.git", PluginHubProject).call(rootDir)
+    os.remove.all(gradleProjectDir/"src"/"test"/"java"/"com")
+    os.remove.all(gradleProjectDir/"src"/"main"/"java"/"com")
 }
 
 private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path, gradleProjectDir: os.Path): Unit = {
@@ -88,20 +87,17 @@ private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path
     rootPomSource.close()
 }
 
-//or, alternatively, push the submodule using 'git push --recurse-submodules=on-demand'
-//as described at: https://git-scm.com/book/en/v2/Git-Tools-Submodules
-@main def push(): Unit = {
-
-    checkDirs() match {
-        case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
-            os.proc("git", "add", ".").call(gradleProjectDir)
-            os.proc("git", "commit", "-m", "\"Generate F2P-StarHunt project compatible with plugin hub\"").call(gradleProjectDir)
-            os.proc("git", "branch", "-M", "master").call(gradleProjectDir)
-            os.proc("git", "remote", "add", "f2p-starhunt", "git@github.com:Jannyboy11/F2P-StarHunt-PluginHub.git").call(gradleProjectDir)
-            os.proc("git", "push", "--set-upstream", "f2p-starhunt", "master", "--force").call(gradleProjectDir)
-        case None =>
+private def checkDirs(): Option[(os.Path, os.Path, os.Path, os.Path)] = {
+    val rootDir = os.pwd
+    if (!rootDir.endsWith(os.RelPath("F2P-StarHunt"))) {
+        println("Please run this script from root directory (F2P-StarHunt)")
+        return None
     }
 
+    val pluginDir = rootDir/PluginProject
+    val commonDir = rootDir/CommonProject
+    val gradleProjectDir = rootDir/PluginHubProject
+    Some((rootDir, pluginDir, commonDir, gradleProjectDir))
 }
 
 private case class RootProjectInfo(group: String, name: String, version: String)
@@ -132,41 +128,41 @@ private def readDependencyInfo(pluginPom: Source, commonPom: Source): Dependenci
 }
 
 private def settingsDotGradle(projectName: String): String =
-    s"""rootProject.name = '${projectName}'
-      |""".stripMargin
+   s"""rootProject.name = '${projectName}'
+   |""".stripMargin
 
 private def buildDotGradle(runeliteVersion: String, lombokVersion: String, junitVersion: String, f2pStarHuntVersion: String, f2pStarHuntGroup: String): String =
-    s"""plugins {
-      |	id 'java'
-      |}
-      |
-      |repositories {
-      |	mavenLocal()
-      |	maven {
-      |		url = 'https://repo.runelite.net'
-      |	}
-      |	mavenCentral()
-      |}
-      |
-      |def runeLiteVersion = '${runeliteVersion}'
-      |
-      |dependencies {
-      |	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
-      |
-      |	compileOnly 'org.projectlombok:lombok:${lombokVersion}'
-      |	annotationProcessor 'org.projectlombok:lombok:${lombokVersion}'
-      |
-      |	testImplementation 'org.junit.jupiter:junit-jupiter-api:${junitVersion}'
-      |	testImplementation 'org.junit.jupiter:junit-jupiter-engine:${junitVersion}'
-      |	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
-      |	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
-      |}
-      |
-      |group = '${f2pStarHuntGroup}'
-      |version = '${f2pStarHuntVersion}'
-      |sourceCompatibility = '1.8'
-      |
-      |tasks.withType(JavaCompile) {
-      |	options.encoding = 'UTF-8'
-      |}
-      |""".stripMargin
+   s"""plugins {
+   |	id 'java'
+   |}
+   |
+   |repositories {
+   |	mavenLocal()
+   |	maven {
+   |		url = 'https://repo.runelite.net'
+   |	}
+   |	mavenCentral()
+   |}
+   |
+   |def runeLiteVersion = '${runeliteVersion}'
+   |
+   |dependencies {
+   |	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
+   |
+   |	compileOnly 'org.projectlombok:lombok:${lombokVersion}'
+   |	annotationProcessor 'org.projectlombok:lombok:${lombokVersion}'
+   |
+   |	testImplementation 'org.junit.jupiter:junit-jupiter-api:${junitVersion}'
+   |	testImplementation 'org.junit.jupiter:junit-jupiter-engine:${junitVersion}'
+   |	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
+   |	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
+   |}
+   |
+   |group = '${f2pStarHuntGroup}'
+   |version = '${f2pStarHuntVersion}'
+   |sourceCompatibility = '1.8'
+   |
+   |tasks.withType(JavaCompile) {
+   |	options.encoding = 'UTF-8'
+   |}
+   |""".stripMargin
