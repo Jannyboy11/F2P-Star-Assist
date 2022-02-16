@@ -8,8 +8,8 @@ val CommonProject = "Common";
 
 @main def generate(): Unit = checkDirs() match {
     case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
-        copySources(rootDir, pluginDir, commonDir, gradleProjectDir)
         copyTemplate(rootDir, pluginDir, commonDir, gradleProjectDir)
+        copySources(rootDir, pluginDir, commonDir, gradleProjectDir)
     case None =>
 }
 

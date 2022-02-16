@@ -20,4 +20,4 @@ Prerequisites:
 Then run `mvn clean package` to generate the jar files.
 
 ## PluginHub-compatible repo
-Is located [here](https://github.com/Jannyboy11/F2P-StarAssist-PluginHub).
+Is located [here](https://github.com/Jannyboy11/F2P-Star-Assist-PluginHub).
