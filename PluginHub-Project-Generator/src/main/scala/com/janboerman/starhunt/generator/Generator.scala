@@ -1,48 +1,10 @@
 package com.janboerman.starhunt.generator
 
+import scala.io.Source
+
 val PluginHubProject = "PluginHub-Project"
 val PluginProject = "RuneLite-Plugin"
 val CommonProject = "Common";
-
-val BuildDotGradle =
-    """plugins {
-      |	id 'java'
-      |}
-      |
-      |repositories {
-      |	mavenLocal()
-      |	maven {
-      |		url = 'https://repo.runelite.net'
-      |	}
-      |	mavenCentral()
-      |}
-      |
-      |def runeLiteVersion = '1.8.11'
-      |
-      |dependencies {
-      |	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
-      |
-      |	compileOnly 'org.projectlombok:lombok:1.18.20'
-      |	annotationProcessor 'org.projectlombok:lombok:1.18.20'
-      |
-      |	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-      | testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-      |	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
-      |	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
-      |}
-      |
-      |group = 'com.janboerman.f2p-starhunt'
-      |version = '0.1'
-      |sourceCompatibility = '1.8'
-      |
-      |tasks.withType(JavaCompile) {
-      |	options.encoding = 'UTF-8'
-      |}
-      |""".stripMargin
-
-val SettingsDotGradle =
-    """rootProject.name = 'F2P-StarHunt'
-      |""".stripMargin
 
 def checkDirs(): Option[(os.Path, os.Path, os.Path, os.Path)] = {
     val rootDir = os.pwd
@@ -96,12 +58,14 @@ private def copyTemplate(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Pat
 
 private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path, gradleProjectDir: os.Path): Unit = {
 
+    //copy sources
     val pluginSrc = pluginDir/"src"
     val commonSrc = commonDir/"src"
     val targetSrc = gradleProjectDir/"src"
     os.copy(from = commonSrc, to = targetSrc, mergeFolders = true, replaceExisting = true)
     os.copy(from = pluginSrc, to = targetSrc, mergeFolders = true, replaceExisting = true)
 
+    //copy readme
     val targetReadMe = gradleProjectDir/"README.md"
     os.copy(rootDir/"README.md", targetReadMe, replaceExisting = true)
     os.write.append(targetReadMe,
@@ -113,11 +77,24 @@ private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path
     val targetLicense = gradleProjectDir/"LICENSE.txt"
     os.copy(rootDir/"LICENSE.txt", targetLicense, replaceExisting = true)
 
-    val targetBuildGradle = gradleProjectDir/"build.gradle"
-    os.write.over(targetBuildGradle, BuildDotGradle, truncate = true)
-    val targetSettingsGradle = gradleProjectDir/"settings.gradle"
-    os.write.over(targetSettingsGradle, SettingsDotGradle, truncate = true)
+    //copy build files
+    val rootPomSource = Source.fromFile((rootDir/"pom.xml").toIO)
+    val pluginPomSource = Source.fromFile((pluginDir/"pom.xml").toIO)
+    val commonPomSource = Source.fromFile((commonDir/"pom.xml").toIO)
 
+    val projectInfo = readProjectInfo(rootPomSource)
+    val dependenciesInfo = readDependencyInfo(pluginPomSource, commonPomSource)
+    val buildGradle = buildDotGradle(dependenciesInfo.runeliteVersion, dependenciesInfo.lombokVersion, dependenciesInfo.junitVersion, projectInfo.version, projectInfo.group)
+    val settingsGradle = settingsDotGradle(projectInfo.name)
+
+    val targetBuildGradle = gradleProjectDir/"build.gradle"
+    os.write.over(targetBuildGradle, buildGradle, truncate = true)
+    val targetSettingsGradle = gradleProjectDir/"settings.gradle"
+    os.write.over(targetSettingsGradle, settingsGradle, truncate = true)
+
+    commonPomSource.close()
+    pluginPomSource.close()
+    rootPomSource.close()
 }
 
 //or, alternatively, push the submodule using 'git push --recurse-submodules=on-demand'
@@ -135,3 +112,70 @@ private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path
     }
 
 }
+
+private case class RootProjectInfo(group: String, name: String, version: String)
+private case class DependenciesInfo(runeliteVersion: String, lombokVersion: String, junitVersion: String)
+
+private def readProjectInfo(rootPom: Source): RootProjectInfo = {
+    val parser = scala.xml.parsing.ConstructingParser.fromSource(rootPom, false)
+    val project = parser.document()
+
+    val groupNode = project \ "groupId"
+    val nameNode = project \ "artifactId"
+    val versionNode = project \ "version"
+
+    RootProjectInfo(groupNode.text, nameNode.text, versionNode.text)
+}
+
+private def readDependencyInfo(pluginPom: Source, commonPom: Source): DependenciesInfo = {
+    var parser = scala.xml.parsing.ConstructingParser.fromSource(pluginPom, false)
+    var project = parser.document()
+    val runeliteVersion = project \ "properties" \ "runelite.version"
+    val lombokVersion = project \ "properties" \ "lombok.version"
+
+    parser = scala.xml.parsing.ConstructingParser.fromSource(commonPom, false)
+    project = parser.document()
+    val junitVersion = project \ "properties" \ "junit.version"
+
+    DependenciesInfo(runeliteVersion.text, lombokVersion.text, junitVersion.text)
+}
+
+private def settingsDotGradle(projectName: String): String =
+    s"""rootProject.name = '${projectName}'
+      |""".stripMargin
+
+private def buildDotGradle(runeliteVersion: String, lombokVersion: String, junitVersion: String, f2pStarHuntVersion: String, f2pStarHuntGroup: String): String =
+    s"""plugins {
+      |	id 'java'
+      |}
+      |
+      |repositories {
+      |	mavenLocal()
+      |	maven {
+      |		url = 'https://repo.runelite.net'
+      |	}
+      |	mavenCentral()
+      |}
+      |
+      |def runeLiteVersion = '${runeliteVersion}'
+      |
+      |dependencies {
+      |	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
+      |
+      |	compileOnly 'org.projectlombok:lombok:${lombokVersion}'
+      |	annotationProcessor 'org.projectlombok:lombok:${lombokVersion}'
+      |
+      |	testImplementation 'org.junit.jupiter:junit-jupiter-api:${junitVersion}'
+      |	testImplementation 'org.junit.jupiter:junit-jupiter-engine:${junitVersion}'
+      |	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
+      |	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
+      |}
+      |
+      |group = '${f2pStarHuntGroup}'
+      |version = '${f2pStarHuntVersion}'
+      |sourceCompatibility = '1.8'
+      |
+      |tasks.withType(JavaCompile) {
+      |	options.encoding = 'UTF-8'
+      |}
+      |""".stripMargin
