@@ -13,6 +13,18 @@ val CommonProject = "Common";
     case None =>
 }
 
+//or, alternatively, push the submodule using 'git push --recurse-submodules=on-demand'
+//as described at: https://git-scm.com/book/en/v2/Git-Tools-Submodules
+@main def push(): Unit = checkDirs() match {
+    case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
+        os.proc("git", "add", ".").call(gradleProjectDir)
+        os.proc("git", "commit", "-m", "\"Generate F2P-StarHunt project compatible with plugin hub\"").call(gradleProjectDir)
+        os.proc("git", "branch", "-M", "master").call(gradleProjectDir)
+        os.proc("git", "remote", "add", "f2p-starhunt", "git@github.com:Jannyboy11/F2P-StarHunt-PluginHub.git").call(gradleProjectDir)
+        os.proc("git", "push", "--set-upstream", "f2p-starhunt", "master", "--force").call(gradleProjectDir)
+    case None =>
+}
+
 @main def copyTemplate(): Unit = checkDirs() match {
     case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
         copyTemplate(rootDir, pluginDir, commonDir, gradleProjectDir)
@@ -27,17 +39,6 @@ val CommonProject = "Common";
     case None =>
 }
 
-//or, alternatively, push the submodule using 'git push --recurse-submodules=on-demand'
-//as described at: https://git-scm.com/book/en/v2/Git-Tools-Submodules
-@main def push(): Unit = checkDirs() match {
-    case Some((rootDir, pluginDir, commonDir, gradleProjectDir)) =>
-        os.proc("git", "add", ".").call(gradleProjectDir)
-        os.proc("git", "commit", "-m", "\"Generate F2P-StarHunt project compatible with plugin hub\"").call(gradleProjectDir)
-        os.proc("git", "branch", "-M", "master").call(gradleProjectDir)
-        os.proc("git", "remote", "add", "f2p-starhunt", "git@github.com:Jannyboy11/F2P-StarHunt-PluginHub.git").call(gradleProjectDir)
-        os.proc("git", "push", "--set-upstream", "f2p-starhunt", "master", "--force").call(gradleProjectDir)
-    case None =>
-}
 
 private def copyTemplate(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path, gradleProjectDir: os.Path): Unit = {
     os.proc("git", "clone", "https://github.com/runelite/example-plugin.git", PluginHubProject).call(rootDir)
@@ -65,7 +66,7 @@ private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path
           |""".stripMargin)
 
     //copy license
-    val targetLicense = gradleProjectDir/"LICENSE.txt"
+    val targetLicense = gradleProjectDir/"LICENSE"
     os.copy(rootDir/"LICENSE.txt", targetLicense, replaceExisting = true)
 
     //copy build files
