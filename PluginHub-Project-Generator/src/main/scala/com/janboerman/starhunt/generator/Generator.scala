@@ -77,11 +77,14 @@ private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path
     val dependenciesInfo = readDependencyInfo(pluginPomSource, commonPomSource)
     val buildGradle = buildDotGradle(dependenciesInfo.runeliteVersion, dependenciesInfo.lombokVersion, dependenciesInfo.junitVersion, projectInfo.version, projectInfo.group)
     val settingsGradle = settingsDotGradle(projectInfo.name)
+    val runelitePluginProperties = pluginSrc/"main"/"resources"/"runelite-plugin.properties"
 
     val targetBuildGradle = gradleProjectDir/"build.gradle"
     os.write.over(targetBuildGradle, buildGradle, truncate = true)
     val targetSettingsGradle = gradleProjectDir/"settings.gradle"
     os.write.over(targetSettingsGradle, settingsGradle, truncate = true)
+    val targetRunelitePluginProperties = gradleProjectDir/"runelite-plugin.properties"
+    os.copy(runelitePluginProperties, targetRunelitePluginProperties, replaceExisting = true)
 
     commonPomSource.close()
     pluginPomSource.close()
