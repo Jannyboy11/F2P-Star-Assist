@@ -5,14 +5,14 @@
     <parent>
         <artifactId>F2P-Star-Assist</artifactId>
         <groupId>com.janboerman.f2p-star-assist</groupId>
-        <version>0.1</version>
+        <version>0.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>RuneLite-Plugin</artifactId>
 
     <properties>
-        <runelite.version>1.8.11</runelite.version>
+        <runelite.version>1.8.14</runelite.version>
         <lombok.version>1.18.20</lombok.version>
     </properties>
 
