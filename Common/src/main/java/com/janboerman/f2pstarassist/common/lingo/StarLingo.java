@@ -90,9 +90,9 @@ public class StarLingo {
                 return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
             else if (containsIgnoreCase(text, "east"))
                 return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
-        if (containsIgnoreCase(text, "lsw"))
+        if (containsAnyIgnoreCase(text, "lsw", "lmw"))
             return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
-        if (containsIgnoreCase(text, "lse"))
+        if (containsAnyIgnoreCase(text, "lse", "lme"))
             return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
 
         //varrock
