@@ -61,9 +61,11 @@ public class StarDatabase {
 
         if (owningGroups == null) {
             //star didn't have an owner yet.
-            this.owningGroups.put(starKey, owningGroups);
-            //notify listener
+            this.owningGroups.put(starKey, groupKeys);
             for (GroupKey groupKey : groupKeys) {
+                //add star
+                getStarCache(groupKey).add(crashedStar);
+                //notify listener
                 starListener.onAdd(groupKey, crashedStar);
             }
             return null;
@@ -173,12 +175,22 @@ public class StarDatabase {
         //don't notify starListener here because we're already using the RemovalListener.
     }
 
-    public synchronized Set<CrashedStar> getStars(GroupKey groupKey) {
+    private synchronized Set<CrashedStar> getStars(GroupKey groupKey) {
         assert groupKey != null;
 
         StarCache starCache = groupCaches.getIfPresent(groupKey);
         if (starCache == null) return Collections.emptySet();
         return starCache.getStars();
+    }
+
+    public synchronized Set<CrashedStar> getStars(Set<GroupKey> groups) {
+        assert groups != null;
+
+        Set<CrashedStar> result = new HashSet<>();
+        for (GroupKey groupKey : groups) {
+            result.addAll(getStars(groupKey));
+        }
+        return result;
     }
 
 }

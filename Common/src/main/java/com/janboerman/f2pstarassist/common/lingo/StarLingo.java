@@ -77,7 +77,7 @@ public class StarLingo {
             return StarLocation.DWARVEN_MINE;
         if (containsAnyIgnoreCase(text, "falador", "fally", "mining guild"))
             return StarLocation.MINING_GUILD;
-        if (containsIgnoreCase(text, "craft") && containsIgnoreCase(text, "guild"))
+        if (containsAllIgnoreCase(text, "craft", "guild"))
             return StarLocation.CRAFTING_GUILD;
         if (containsIgnoreCase(text, "rim"))
             return StarLocation.RIMMINGTON_MINE;
@@ -105,7 +105,7 @@ public class StarLingo {
                 return StarLocation.VARROCK_AUBURY;
         if (containsIgnoreCase(text, "aubury"))
             return StarLocation.VARROCK_AUBURY;
-        if (containsAnyIgnoreCase(text, "vsw", "vmw") || (containsIgnoreCase(text, "champ") && containsIgnoreCase(text, "guild")))
+        if (containsAnyIgnoreCase(text, "vsw", "vmw") || containsAllIgnoreCase(text, "champ", "guild"))
             return StarLocation.VARROCK_SOUTH_WEST_MINE;
         if (containsAnyIgnoreCase(text, "vse", "vme"))
             return StarLocation.VARROCK_SOUTH_EAST_MINE;
@@ -116,8 +116,11 @@ public class StarLingo {
                 return StarLocation.AL_KHARID_BANK;
             else if (containsIgnoreCase(text, "mine"))
                 return StarLocation.AL_KHARID_MINE;
+        if (containsAllIgnoreCase(text, "desert", "mine"))
+            return StarLocation.AL_KHARID_MINE;
         if (containsIgnoreCase(text, "duel"))
             return StarLocation.DUEL_ARENA;
+        //TODO? PVP Arena?
 
         //crandor, corsair cove
         if (containsIgnoreCase(text, "crandor"))

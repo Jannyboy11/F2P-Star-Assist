@@ -71,10 +71,7 @@ class StarHandler extends AbstractHandler {
                         Set<GroupKey> groupKeys = StarJson.groupKeys(jsonArray);
 
                         //calculation
-                        Set<CrashedStar> stars = new HashSet<>();
-                        for (GroupKey groupKey : groupKeys) {
-                            stars.addAll(starDatabase.getStars(groupKey));
-                        }
+                        Set<CrashedStar> stars = starDatabase.getStars(groupKeys);
 
                         //response
                         response.setStatus(HttpServletResponse.SC_OK);

@@ -13,6 +13,7 @@
 
     <properties>
         <jetty.version>11.0.8</jetty.version>
+        <junit.version>5.8.2</junit.version>
     </properties>
 
     <build>
@@ -74,6 +75,20 @@
             <artifactId>jetty-server</artifactId>
             <version>${jetty.version}</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
