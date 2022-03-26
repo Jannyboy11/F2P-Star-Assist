@@ -56,6 +56,7 @@ class StarHandler extends AbstractHandler {
         }
     }
 
+    //curl -X POST http://localhost:8080/stars -H "Content-Type: application/json" -d "[\"KEY\"]" --verbose
     private void receiveRequestStars(HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch (request.getMethod()) {
             case "POST":
@@ -130,6 +131,7 @@ class StarHandler extends AbstractHandler {
         }
     }
 
+    //curl -X PATCH http://localhost:8080/update_star -H "Content-Type: application/json" -d "{\"groups\":[\"YoloSwag\"],\"type\":\"star update\",\"payload\":{\"tier\":1,\"location\":\"DUEL_ARENA\",\"world\":556}}" --verbose
     private void receiveUpdateStar(HttpServletRequest request, HttpServletResponse response) throws IOException {
         switch(request.getMethod()) {
             case "PATCH":

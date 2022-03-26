@@ -123,7 +123,7 @@ public class StarDatabase {
             //update for a non-existing star. just pretend it is new.
             existingStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
             //add it to cache
-            add(Set.of(groupKey), existingStar);
+            add(new HashSet<>() {{ add(groupKey); }}, existingStar);
             //if a different group already found the star, then add simply returns null without updating the cache.
             //yet, we still want to return the 'new' star.
             return existingStar;

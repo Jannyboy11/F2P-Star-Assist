@@ -234,4 +234,21 @@ public class StarDatabaseTest {
         assertFalse(starDatabase.getStars(groupB).contains(crashedStar));
     }
 
+    @Test
+    public void testUpdate() {
+        final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
+
+        final StarKey starKey = new StarKey(StarLocation.RIMMINGTON_MINE, 576);
+        final Instant detectedAt = Instant.now();
+        final User detectedBy = new RunescapeUser("Jannyboy11");
+        final CrashedStar crashedStar = new CrashedStar(starKey, StarTier.SIZE_3, detectedAt, detectedBy);
+        final GroupKey group = new GroupKey("group");
+
+        starDatabase.add(Set.of(group), crashedStar);
+        CrashedStar result = starDatabase.update(group, new StarUpdate(starKey, StarTier.SIZE_2));
+
+        CrashedStar expected = new CrashedStar(starKey, StarTier.SIZE_2, detectedAt, detectedBy);
+        assertEquals(expected, result);
+    }
+
 }
