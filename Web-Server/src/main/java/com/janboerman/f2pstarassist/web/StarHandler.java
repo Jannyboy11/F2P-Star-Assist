@@ -19,8 +19,11 @@ import jakarta.servlet.ServletException;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.Request;
@@ -137,21 +140,12 @@ class StarHandler extends AbstractHandler {
                         StarKey starKey = starUpdate.getKey();
                         StarTier newTier = starUpdate.getTier();
 
-                        CrashedStar resultStar = null;
-
-                        for (GroupKey groupKey : groups) {
-                            //apply update
-                            CrashedStar updatedStar = starDatabase.update(groupKey, starUpdate);
-
-                            if (updatedStar != null) {
-                                //resultStar becomes the star with the lowest tier
-                                if (resultStar == null || resultStar.getTier().compareTo(updatedStar.getTier()) > 0) {
-                                    resultStar = updatedStar;
-                                }
-                            }
-                        }
-
-                        if (resultStar == null) {
+                        CrashedStar resultStar;
+                        Map<GroupKey, CrashedStar> knownStarsByGroup = starDatabase.update(groups, starUpdate);
+                        if (!knownStarsByGroup.isEmpty()) {
+                            //result is the earliest found star
+                            resultStar = knownStarsByGroup.values().stream().reduce(BinaryOperator.minBy(Comparator.comparing(CrashedStar::getDetectedAt))).get();
+                        } else {
                             //if the star was unknown to all of the groups
                             resultStar = new CrashedStar(starKey, newTier, Instant.now(), User.unknown());
                         }
