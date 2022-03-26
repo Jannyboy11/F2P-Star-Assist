@@ -13,7 +13,9 @@ import com.janboerman.f2pstarassist.common.User;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -128,6 +130,16 @@ public class StarDatabase {
         }
     }
 
+    public synchronized Map<GroupKey, CrashedStar> update(Set<GroupKey> groups, StarUpdate starUpdate) {
+        assert groups != null;
+
+        Map<GroupKey, CrashedStar> result = new HashMap<>();
+        for (GroupKey group : groups) {
+            result.put(group, update(group, starUpdate));
+        }
+        return result;
+    }
+
     public synchronized CrashedStar get(GroupKey groupKey, StarKey starKey) {
         assert groupKey != null;
         assert starKey != null;
@@ -160,6 +172,7 @@ public class StarDatabase {
         }
     }
 
+    //returns true iff the star was removed from the group's starcache
     public synchronized boolean remove(GroupKey groupKey, StarKey starKey) {
         assert groupKey != null;
         assert starKey != null;
@@ -168,14 +181,23 @@ public class StarDatabase {
         if (starCache == null) return false;
         boolean removed = starCache.remove(starKey) != null;
         if (removed) {
-            Set<GroupKey> groups = owningGroups.remove(starKey);
+            Set<GroupKey> groups = owningGroups.get(starKey);
             if (groups != null) groups.remove(groupKey);
+            if (groups.isEmpty()) owningGroups.remove(starKey);
         }
         return removed;
         //don't notify starListener here because we're already using the RemovalListener.
     }
 
-    private synchronized Set<CrashedStar> getStars(GroupKey groupKey) {
+    public synchronized void remove(Set<GroupKey> groups, StarKey starKey) {
+        assert groups != null;
+
+        for (GroupKey groupKey : groups) {
+            remove(groupKey, starKey);
+        }
+    }
+
+    public synchronized Set<CrashedStar> getStars(GroupKey groupKey) {
         assert groupKey != null;
 
         StarCache starCache = groupCaches.getIfPresent(groupKey);

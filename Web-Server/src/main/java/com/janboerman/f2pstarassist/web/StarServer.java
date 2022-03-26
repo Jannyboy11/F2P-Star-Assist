@@ -18,7 +18,7 @@ public class StarServer {
 
         //TODO set HTTPS (SSL) https://dzone.com/articles/adding-ssl-support-embedded but use LetsEncrypt instead.
 
-        StarDatabase starDatabase = new StarDatabase(DummyStarListener.INSTANCE);
+        StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
 
         Server server = new Server(port);
         server.setHandler(new StarHandler(starDatabase));
