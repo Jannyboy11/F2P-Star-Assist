@@ -63,7 +63,7 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
 
-                    logger.fine("Received 'request stars': " + jsonElement);
+                    logger.info("Received 'request stars': " + jsonElement);
 
                     if (jsonElement instanceof JsonArray jsonArray) {
                         Set<GroupKey> groupKeys = StarJson.groupKeys(jsonArray);
@@ -75,8 +75,10 @@ class StarHandler extends AbstractHandler {
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(APPLICATION_JSON);
                         response.getWriter().write(StarJson.crashedStarsJson(stars).toString());
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (RuntimeException e) {
+                } catch (JsonParseException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -92,7 +94,7 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
 
-                    logger.fine("Received 'send star': " + jsonElement);
+                    logger.info("Received 'send star': " + jsonElement);
 
                     if (jsonElement instanceof JsonObject jsonObject) {
                         StarPacket starPacket = StarJson.starPacket(jsonObject);
@@ -114,8 +116,11 @@ class StarHandler extends AbstractHandler {
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.getWriter().write(StarJson.crashedStarJson(star).toString());
                         }
+
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (RuntimeException e) {
+                } catch (JsonParseException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -131,7 +136,7 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
 
-                    logger.fine("Received 'update star': " + jsonElement);
+                    logger.info("Received 'update star': " + jsonElement);
 
                     if (jsonElement instanceof JsonObject jsonObject) {
                         StarPacket starPacket = StarJson.starPacket(jsonObject);
@@ -158,7 +163,7 @@ class StarHandler extends AbstractHandler {
                     } else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (RuntimeException e) {
+                } catch (JsonParseException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -174,7 +179,7 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
 
-                    logger.fine("Received 'delete star': " + jsonElement);
+                    logger.info("Received 'delete star': " + jsonElement);
 
                     if (jsonElement instanceof JsonObject jsonObject) {
                         StarPacket starPacket = StarJson.starPacket(jsonObject);
@@ -185,12 +190,13 @@ class StarHandler extends AbstractHandler {
                         for (GroupKey groupKey : groups) {
                             starDatabase.remove(groupKey, starKey);
                         }
+
+                        //response
+                        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-
-                    //response
-                    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-
-                } catch (RuntimeException e) {
+                } catch (JsonParseException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;

@@ -61,9 +61,7 @@ public class StarLingo {
     public static StarLocation interpretLocation(String text) {
         //wildy
         if (containsAnyIgnoreCase(text, "wildy", "wilderness"))
-            if (containsAnyIgnoreCase(text, "rune", "runite", "lava", "maze"))
-                return StarLocation.WILDERNESS_RUNITE_MINE;
-            else if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hobgoblins"))
+            if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hobgoblins"))
                 return StarLocation.WILDERNESS_CENTRE_MINE;
             else if (containsAnyIgnoreCase(text, "dark", "warrior", "fortress")
                     || containsAllIgnoreCase(text, "south", "west"))
@@ -71,6 +69,8 @@ public class StarLingo {
             else if ((containsIgnoreCase(text, "south") && !containsIgnoreCase(text, "west"))
                     || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy"))
                 return StarLocation.WILDERNESS_SOUTH_MINE;
+        if (containsAnyIgnoreCase(text, "rune", "runite", "lava", "maze"))
+            return StarLocation.WILDERNESS_RUNITE_MINE;
 
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven"))

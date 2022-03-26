@@ -15,7 +15,6 @@ public class StarServer {
 
     public static void main(String[] args) throws Exception {
         final Logger logger = Logger.getLogger("star server");
-        logger.setLevel(Level.ALL);
 
         final OptionParser optionParser = new OptionParser();
         final OptionSpec<Integer> portSpec = optionParser.accepts("port", "port number on which to run the web server")
