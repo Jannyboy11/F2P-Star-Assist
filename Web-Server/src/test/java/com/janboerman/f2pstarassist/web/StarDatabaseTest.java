@@ -221,7 +221,7 @@ public class StarDatabaseTest {
     public void testScenario8() {
         final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
 
-        final StarKey starKey = new StarKey(StarLocation.CORSAIR_COVE_BANK, 417);
+        final StarKey starKey = new StarKey(StarLocation.CORSAIR_COVE_BANK, 418);
         final CrashedStar crashedStar = new CrashedStar(starKey, StarTier.SIZE_3, Instant.now(), new RunescapeUser("a"));
         final GroupKey groupA = new GroupKey("A");
         final GroupKey groupB = new GroupKey("B");
@@ -230,8 +230,8 @@ public class StarDatabaseTest {
         starDatabase.add(new HashSet<>() { { add(groupB); } }, crashedStar);
         starDatabase.remove(new HashSet<>() { { add(groupB); } }, starKey);
 
-        assertEquals(crashedStar, starDatabase.get(groupA, starKey));
-        assertNull(starDatabase.get(groupB, starKey));
+        assertTrue(starDatabase.getStars(groupA).contains(crashedStar));
+        assertFalse(starDatabase.getStars(groupB).contains(crashedStar));
     }
 
 }

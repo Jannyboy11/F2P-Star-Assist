@@ -1,5 +1,8 @@
 package com.janboerman.f2pstarassist.web;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
 import org.eclipse.jetty.server.Server;
 
 import java.util.logging.Logger;
@@ -10,18 +13,23 @@ public class StarServer {
     }
 
     public static void main(String[] args) throws Exception {
-        Logger logger = Logger.getLogger("star server");
+        final Logger logger = Logger.getLogger("star server");
 
-        //TODO get port number from option command line arguments (use an OptionParser)
-        //TODO otherwise fall back to 8080
-        final int port = 8080;
+        final OptionParser optionParser = new OptionParser();
+        final OptionSpec<Integer> portSpec = optionParser.accepts("port", "port number on which to run the web server")
+                .withRequiredArg()
+                .withValuesConvertedBy(new PortConverter())
+                .defaultsTo(8080);
+        //TODO option to configure the file used for the unix domain socket for communication with the discord bot
+        final OptionSet options = optionParser.parse(args);
+
+        final int port = options.valueOf(portSpec);
+
+        final Server server = new Server(port);
+        final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
+        server.setHandler(new StarHandler(starDatabase));
 
         //TODO set HTTPS (SSL) https://dzone.com/articles/adding-ssl-support-embedded but use LetsEncrypt instead.
-
-        StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
-
-        Server server = new Server(port);
-        server.setHandler(new StarHandler(starDatabase));
 
         logger.info("Started StarServer on port " + port + "!");
 
