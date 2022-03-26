@@ -48,9 +48,9 @@ public class StarAssistPlugin extends Plugin {
 	//populated right after construction
 	@Inject private Client client;
 	@Inject private ClientToolbar clientToolbar;
-	@Inject private StarAssistConfig config;
 	@Inject private WorldService worldService;
 	@Inject private ClientThread clientThread;
+	@Inject private StarAssistConfig config;
 
 	//populated on start-up
 	private StarClient starClient;
@@ -119,13 +119,19 @@ public class StarAssistPlugin extends Plugin {
 	public void fetchStarList(Set<GroupKey> sharingGroups) {
 		if (config.httpConnectionEnabled()) {
 			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars(sharingGroups);
-			starFuture.whenCompleteAsync((stars, ex) -> {
+			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
 				} else {
-					log.debug("received stars from webserver: " + stars);
+					log.debug("received stars from webserver: " + receivedStars);
 					clientThread.invoke(() -> {
-						boolean foundNew = starCache.addAll(stars);
+						boolean foundNew = starCache.addAll(receivedStars);
+						//TODO this logic is incorrect. we want to update the starcache based on the detection date of stars, and sizes.
+						//TODO also we want to remove stars from our local starcache if they are no longer present on the server.
+						//TODO maybe I can add a StarTier.DEAD/POOFED/GONE/DROPPED or just use 'null' to indicate that a star has died.
+						
+						//TODO maybe the client should send the star keys from the stars it knows about,
+						//TODO and then the server can calculate and reply with star updates that the client can then apply locally.
 						if (foundNew)
 							updatePanel();
 					});
