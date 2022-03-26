@@ -1,18 +1,8 @@
 package com.janboerman.f2pstarassist.web;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.janboerman.f2pstarassist.common.CrashedStar;
-import com.janboerman.f2pstarassist.common.GroupKey;
-import com.janboerman.f2pstarassist.common.StarKey;
-import com.janboerman.f2pstarassist.common.StarPacket;
-import com.janboerman.f2pstarassist.common.StarTier;
-import com.janboerman.f2pstarassist.common.StarUpdate;
-import com.janboerman.f2pstarassist.common.User;
-import com.janboerman.f2pstarassist.common.web.EndPoints;
-import com.janboerman.f2pstarassist.common.web.StarJson;
+import com.google.gson.*;
+import com.janboerman.f2pstarassist.common.*;
+import com.janboerman.f2pstarassist.common.web.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
@@ -20,10 +10,10 @@ import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
+import java.util.logging.Logger;
 
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.Request;
@@ -33,9 +23,11 @@ class StarHandler extends AbstractHandler {
     private static final String APPLICATION_JSON = "application/json";
 
     private final StarDatabase starDatabase;
+    private final Logger logger;
 
-    StarHandler(StarDatabase starDatabase) {
+    StarHandler(StarDatabase starDatabase, Logger logger) {
         this.starDatabase = starDatabase;
+        this.logger = logger;
     }
 
     @Override
@@ -70,6 +62,9 @@ class StarHandler extends AbstractHandler {
                 //request body
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
+
+                    logger.fine("Received 'request stars': " + jsonElement);
+
                     if (jsonElement instanceof JsonArray jsonArray) {
                         Set<GroupKey> groupKeys = StarJson.groupKeys(jsonArray);
 
@@ -96,6 +91,9 @@ class StarHandler extends AbstractHandler {
             case "PUT":
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
+
+                    logger.fine("Received 'send star': " + jsonElement);
+
                     if (jsonElement instanceof JsonObject jsonObject) {
                         StarPacket starPacket = StarJson.starPacket(jsonObject);
                         Set<GroupKey> groups = starPacket.getGroups();
@@ -132,6 +130,9 @@ class StarHandler extends AbstractHandler {
             case "PATCH":
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
+
+                    logger.fine("Received 'update star': " + jsonElement);
+
                     if (jsonElement instanceof JsonObject jsonObject) {
                         StarPacket starPacket = StarJson.starPacket(jsonObject);
                         Set<GroupKey> groups = starPacket.getGroups();
@@ -172,6 +173,9 @@ class StarHandler extends AbstractHandler {
             case "DELETE":
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
+
+                    logger.fine("Received 'delete star': " + jsonElement);
+
                     if (jsonElement instanceof JsonObject jsonObject) {
                         StarPacket starPacket = StarJson.starPacket(jsonObject);
                         Set<GroupKey> groups = starPacket.getGroups();

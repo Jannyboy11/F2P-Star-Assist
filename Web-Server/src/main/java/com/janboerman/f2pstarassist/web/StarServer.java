@@ -5,6 +5,7 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.eclipse.jetty.server.Server;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StarServer {
@@ -14,6 +15,7 @@ public class StarServer {
 
     public static void main(String[] args) throws Exception {
         final Logger logger = Logger.getLogger("star server");
+        logger.setLevel(Level.ALL);
 
         final OptionParser optionParser = new OptionParser();
         final OptionSpec<Integer> portSpec = optionParser.accepts("port", "port number on which to run the web server")
@@ -27,7 +29,7 @@ public class StarServer {
 
         final Server server = new Server(port);
         final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
-        server.setHandler(new StarHandler(starDatabase));
+        server.setHandler(new StarHandler(starDatabase, logger));
 
         //TODO set HTTPS (SSL) https://dzone.com/articles/adding-ssl-support-embedded but use LetsEncrypt instead.
 
