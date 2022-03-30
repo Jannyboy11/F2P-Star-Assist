@@ -129,7 +129,7 @@ public class StarAssistPlugin extends Plugin {
 						//TODO this logic is incorrect. we want to update the starcache based on the detection date of stars, and sizes.
 						//TODO also we want to remove stars from our local starcache if they are no longer present on the server.
 						//TODO maybe I can add a StarTier.DEAD/POOFED/GONE/DROPPED or just use 'null' to indicate that a star has died.
-						
+
 						//TODO maybe the client should send the star keys from the stars it knows about,
 						//TODO and then the server can calculate and reply with star updates that the client can then apply locally.
 						if (foundNew)
@@ -481,7 +481,12 @@ public class StarAssistPlugin extends Plugin {
 		if (starTier == null) return;	//not a star
 
 		WorldPoint worldPoint = gameObject.getWorldLocation();
-		StarKey starKey = new StarKey(StarPoints.toLocation(worldPoint), client.getWorld());
+		StarLocation starLocation = StarPoints.toLocation(worldPoint);
+		if (starLocation == null) {
+			log.error("Unrecognised star location at world point: " + worldPoint);
+			return;
+		}
+		StarKey starKey = new StarKey(starLocation, client.getWorld());
 
 		log.debug("A " + starTier + " star just despawned at location: " + worldPoint + ".");
 
@@ -529,7 +534,12 @@ public class StarAssistPlugin extends Plugin {
 		if (starTier == null) return;	//not a star
 
 		WorldPoint worldPoint = gameObject.getWorldLocation();
-		StarKey starKey = new StarKey(StarPoints.toLocation(worldPoint), client.getWorld());
+		StarLocation starLocation = StarPoints.toLocation(worldPoint);
+		if (starLocation == null) {
+			log.error("Unrecognised star location at world point: " + worldPoint);
+			return;
+		}
+		StarKey starKey = new StarKey(starLocation, client.getWorld());
 
 		log.debug("A " + starTier + " star spawned at location: " + worldPoint + ".");
 
