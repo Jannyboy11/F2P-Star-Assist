@@ -67,7 +67,7 @@ public class StarLingo {
                     || containsAllIgnoreCase(text, "south", "west"))
                 return StarLocation.WILDERNESS_SOUTH_WEST_MINE;
             else if ((containsIgnoreCase(text, "south") && !containsIgnoreCase(text, "west"))
-                    || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy"))
+                    || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy", "skeles", "skeletons"))
                 return StarLocation.WILDERNESS_SOUTH_MINE;
         if (containsAnyIgnoreCase(text, "rune", "runite", "lava", "maze"))
             return StarLocation.WILDERNESS_RUNITE_MINE;
