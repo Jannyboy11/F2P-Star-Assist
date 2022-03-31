@@ -128,10 +128,15 @@ public class StarAssistPlugin extends Plugin {
 						boolean foundNew = starCache.addAll(receivedStars);
 						//TODO this logic is incorrect. we want to update the starcache based on the detection date of stars, and sizes.
 						//TODO also we want to remove stars from our local starcache if they are no longer present on the server.
-						//TODO maybe I can add a StarTier.DEAD/POOFED/GONE/DROPPED or just use 'null' to indicate that a star has died.
 
 						//TODO maybe the client should send the star keys from the stars it knows about,
 						//TODO and then the server can calculate and reply with star updates that the client can then apply locally.
+						//TODO we probably want a 'StarList' class that the webserver can respond with. This class contains 3 fields: newStars, updatedStars, poofedStars.
+						//TODO this class contains the stars the client didn't yet know about, as well as star updates for stars the client already knew about.
+						//TODO and this will also include a list of poofed star keys for stars that have been deleted from the server.
+
+						//TODO we also need to find out why updated star information isn't received from the server.
+						//TODO find out whether the issue is on the server side or client side.
 						if (foundNew)
 							updatePanel();
 					});
