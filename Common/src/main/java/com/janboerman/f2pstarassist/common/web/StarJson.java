@@ -8,6 +8,8 @@ import com.janboerman.f2pstarassist.common.*;
 import com.google.gson.JsonObject;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -16,6 +18,21 @@ import java.util.stream.StreamSupport;
 public class StarJson {
 
     private StarJson() {
+    }
+
+    public static StarList starList(JsonObject starList) {
+        Map<Set<CrashedStar>, Set<GroupKey>> freshStars = readFreshStars(starList);
+        Set<StarUpdate> starUpdates = readStarUpdates(starList);
+        Set<StarKey> deletedStars = readDeletedStars(starList);
+        return new StarList(freshStars, starUpdates, deletedStars);
+    }
+
+    public static JsonObject starListJson(StarList starList) {
+        JsonObject result = new JsonObject();
+        writeFreshStars(result, starList.getFreshStars());
+        writeStarUpdates(result, starList.getStarUpdates());
+        writeDeletedStars(result, starList.getDeletedStars());
+        return result;
     }
 
     public static StarPacket starPacket(JsonObject starPacket) {
@@ -84,6 +101,19 @@ public class StarJson {
         return result;
     }
 
+    public static Set<StarUpdate> starUpdates(JsonArray jsonArray) {
+        return StreamSupport.stream(jsonArray.spliterator(), false)
+                .filter(jsonElement -> jsonElement instanceof JsonObject)
+                .map(jsonElement -> starUpdate((JsonObject) jsonElement))
+                .collect(Collectors.toSet());
+    }
+
+    public static JsonArray starUpdatesJson(Set<StarUpdate> starUpdates) {
+        return starUpdates.stream()
+                .map(StarJson::starUpdateJson)
+                .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
+    }
+
     public static StarKey starKey(JsonObject starKey) {
         StarLocation starLocation = readLocation(starKey);
         int world = readWorld(starKey);
@@ -95,6 +125,20 @@ public class StarJson {
         writeLocation(result, starKey.getLocation());
         writeWorld(result, starKey.getWorld());
         return result;
+    }
+
+    public static Set<StarKey> starKeys(JsonArray jsonArray){
+        return StreamSupport.stream(jsonArray.spliterator(), false)
+                .filter(jsonElement -> jsonElement instanceof JsonObject)
+                .map(jsonElement -> starKey((JsonObject) jsonElement))
+                .collect(Collectors.toSet());
+    }
+
+
+    public static JsonArray starKeysJson(Set<StarKey> deletedStars){
+        return deletedStars.stream()
+                .map(StarJson::starKeyJson)
+                .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
     }
 
     public static Set<GroupKey> groupKeys(JsonArray groupKeys) {
@@ -215,4 +259,42 @@ public class StarJson {
         }
     }
 
+    private static void writeFreshStars(JsonObject starList, Map<Set<CrashedStar>, Set<GroupKey>> freshStars) {
+        JsonArray fresh = new JsonArray();
+        for (Map.Entry<Set<CrashedStar>, Set<GroupKey>> entry : freshStars.entrySet()) {
+            JsonObject jsonEntry = new JsonObject();
+            jsonEntry.add("stars", crashedStarsJson(entry.getKey()));
+            jsonEntry.add("owned by", groupKeysJson(entry.getValue()));
+            fresh.add(jsonEntry);
+        }
+        starList.add("fresh", fresh);
+    }
+
+    private static Map<Set<CrashedStar>, Set<GroupKey>> readFreshStars(JsonObject starList) {
+        Map<Set<CrashedStar>, Set<GroupKey>> result = new LinkedHashMap<>();
+        JsonArray fresh = starList.getAsJsonArray("fresh");
+        for (JsonElement jsonEntry : fresh) {
+            JsonObject entry = (JsonObject) jsonEntry;
+            Set<CrashedStar> stars = crashedStars(entry.getAsJsonArray("stars"));
+            Set<GroupKey> ownedBy = groupKeys(entry.getAsJsonArray("owned by"));
+            result.put(stars, ownedBy);
+        }
+        return result;
+    }
+
+    private static void writeStarUpdates(JsonObject starList, Set<StarUpdate> starUpdates) {
+        starList.add("updates", starUpdatesJson(starUpdates));
+    }
+
+    private static Set<StarUpdate> readStarUpdates(JsonObject starList) {
+        return starUpdates(starList.getAsJsonArray("updates"));
+    }
+
+    private static void writeDeletedStars(JsonObject starList, Set<StarKey> deletedStars) {
+        starList.add("deleted", starKeysJson(deletedStars));
+    }
+
+    public static Set<StarKey> readDeletedStars(JsonObject starList) {
+        return starKeys(starList.getAsJsonArray("deleted"));
+    }
 }

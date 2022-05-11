@@ -12,7 +12,7 @@
     <artifactId>RuneLite-Plugin</artifactId>
 
     <properties>
-        <runelite.version>1.8.15.1</runelite.version>
+        <runelite.version>1.8.19</runelite.version>
         <lombok.version>1.18.20</lombok.version>
         <junit.version>5.8.2</junit.version>
     </properties>
@@ -40,7 +40,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

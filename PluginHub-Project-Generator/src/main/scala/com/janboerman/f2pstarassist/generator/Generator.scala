@@ -69,6 +69,10 @@ private def copySources(rootDir: os.Path, pluginDir: os.Path, commonDir: os.Path
     val targetLicense = gradleProjectDir/"LICENSE"
     os.copy(rootDir/"LICENSE.txt", targetLicense, replaceExisting = true)
 
+    //copy icon
+    val targetIcon = gradleProjectDir/"icon.png"
+    os.copy(pluginDir/"icon.png", targetIcon, replaceExisting = true)
+
     //copy build files
     val rootPomSource = Source.fromFile((rootDir/"pom.xml").toIO)
     val pluginPomSource = Source.fromFile((pluginDir/"pom.xml").toIO)

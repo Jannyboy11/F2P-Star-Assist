@@ -5,7 +5,6 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.eclipse.jetty.server.Server;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class StarServer {

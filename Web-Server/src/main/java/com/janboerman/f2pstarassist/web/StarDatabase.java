@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -63,7 +64,7 @@ public class StarDatabase {
 
         if (owningGroups == null) {
             //star didn't have an owner yet.
-            this.owningGroups.put(starKey, groupKeys);
+            this.owningGroups.put(starKey, new LinkedHashSet<>(groupKeys)); //defensive copy
             for (GroupKey groupKey : groupKeys) {
                 //add star
                 getStarCache(groupKey).add(crashedStar);
@@ -182,8 +183,12 @@ public class StarDatabase {
         boolean removed = starCache.remove(starKey) != null;
         if (removed) {
             Set<GroupKey> groups = owningGroups.get(starKey);
-            if (groups != null) groups.remove(groupKey);
-            if (groups.isEmpty()) owningGroups.remove(starKey);
+            if (groups != null) {
+                groups.remove(groupKey);
+                if (groups.isEmpty()) {
+                    owningGroups.remove(starKey);
+                }
+            }
         }
         return removed;
         //don't notify starListener here because we're already using the RemovalListener.

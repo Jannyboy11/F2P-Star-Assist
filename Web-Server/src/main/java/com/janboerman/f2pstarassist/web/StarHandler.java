@@ -36,6 +36,8 @@ class StarHandler extends AbstractHandler {
 
         assert target != null;
 
+        logger.info("handle request at target: " + target);
+
         if (target.endsWith(EndPoints.ALL_STARS)) {
             receiveRequestStars(request, response);
             baseRequest.setHandled(true);
@@ -67,6 +69,8 @@ class StarHandler extends AbstractHandler {
                     logger.info("Received 'request stars': " + jsonElement);
 
                     if (jsonElement instanceof JsonArray jsonArray) {
+                        //legacy request
+
                         Set<GroupKey> groupKeys = StarJson.groupKeys(jsonArray);
 
                         //calculation
@@ -75,11 +79,18 @@ class StarHandler extends AbstractHandler {
                         //response
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(APPLICATION_JSON);
-                        response.getWriter().write(StarJson.crashedStarsJson(stars).toString());
-                    } else {
+                        String responseBody = StarJson.crashedStarsJson(stars).toString();
+                        response.getWriter().write(responseBody);
+
+                        logger.info("Replied with star list: " + responseBody);
+                    }
+
+                    //TODO reply with StarList
+
+                    else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -95,6 +106,8 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
 
+                    //TODO html-escape the 'discovered by' account
+
                     logger.info("Received 'send star': " + jsonElement);
 
                     if (jsonElement instanceof JsonObject jsonObject) {
@@ -109,19 +122,23 @@ class StarHandler extends AbstractHandler {
                         if (existing == null) {
                             //no need to reply with anything if the star is new.
                             response.setStatus(HttpServletResponse.SC_CREATED);
+                            logger.info("Replied with 201 CREATED");
                         } else {
                             //reply with the currently existing star, if one already exists.
                             star = existing;
 
                             response.setContentType(APPLICATION_JSON);
                             response.setStatus(HttpServletResponse.SC_OK);
-                            response.getWriter().write(StarJson.crashedStarJson(star).toString());
+                            String responseBody = StarJson.crashedStarJson(star).toString();
+                            response.getWriter().write(responseBody);
+
+                            logger.info("Replied with updated star: " + responseBody);
                         }
 
                     } else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -161,11 +178,14 @@ class StarHandler extends AbstractHandler {
                         //response
                         response.setStatus(HttpServletResponse.SC_OK);
                         response.setContentType(APPLICATION_JSON);
-                        response.getWriter().write(StarJson.crashedStarJson(resultStar).toString());
+                        String responseBody = StarJson.crashedStarJson(resultStar).toString();
+                        response.getWriter().write(responseBody);
+
+                        logger.info("Replied with updated star: " + responseBody);
                     } else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;
@@ -195,10 +215,12 @@ class StarHandler extends AbstractHandler {
 
                         //response
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+
+                        logger.info("Replied with 204 NO CONTENT");
                     } else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
-                } catch (JsonParseException e) {
+                } catch (RuntimeException e) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
                 break;

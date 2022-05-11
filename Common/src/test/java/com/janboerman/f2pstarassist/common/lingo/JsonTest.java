@@ -10,13 +10,17 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JsonTest {
 
-    private static final String[] GROUPS = {"ONE", "TWO", "THREE"};
+    private static final String[] GROUPS = {"ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN"};
     private static final StarLocation[] LOCATIONS = StarLocation.values();
     private static final StarTier[] TIERS = StarTier.values();
     private static final String[] USER_NAMES = {"Jannyboy11", "John Doe", "Alice", "Bob"};
@@ -83,6 +87,39 @@ public class JsonTest {
             default: payload = null;
         }
         return new StarPacket(makeGroups(), payload);
+    }
+
+    private StarList makeStarList() {
+        final Map<Set<CrashedStar>, Set<GroupKey>> fresh = new HashMap<>();
+        final Set<StarUpdate> updates = new HashSet<>();
+        final Set<StarKey> deleted = new HashSet<>();
+
+        final int maxFresh = random.nextInt(4);
+        final int maxUpdates = random.nextInt(4);
+        final int maxDeleted = random.nextInt(4);
+
+        for (int i = 0; i < maxFresh; i++) {
+            Set<CrashedStar> starSet = Stream.generate(this::makeCrashedStar).limit(random.nextInt(4)).collect(Collectors.toSet());
+            Set<GroupKey> groupSet = Arrays.stream(GROUPS).map(GroupKey::new).limit(random.nextInt(GROUPS.length)).collect(Collectors.toSet());
+            fresh.put(starSet, groupSet);
+        }
+        for (int i = 0; i < maxUpdates; i++) {
+            Set<StarUpdate> updateSet = Stream.generate(this::makeStarUpdate).limit(random.nextInt(4)).collect(Collectors.toSet());
+            updates.addAll(updateSet);
+        }
+        for (int i = 0; i < maxDeleted; i++) {
+            Set<StarKey> deleteSet = Stream.generate(this::makeStarKey).limit(random.nextInt(4)).collect(Collectors.toSet());
+            deleted.addAll(deleteSet);
+        }
+
+        return new StarList(fresh, updates, deleted);
+    }
+
+    @Test
+    public void testStarList() {
+        final StarList starList = makeStarList();
+
+        assertEquals(starList, starList(starListJson(starList)));
     }
 
     @Test

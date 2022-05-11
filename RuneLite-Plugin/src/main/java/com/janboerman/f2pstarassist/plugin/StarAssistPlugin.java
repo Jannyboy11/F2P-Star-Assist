@@ -6,6 +6,7 @@ import com.janboerman.f2pstarassist.common.*;
 
 import com.janboerman.f2pstarassist.common.lingo.StarLingo;
 import static com.janboerman.f2pstarassist.common.util.CollectionConvert.toSet;
+import static com.janboerman.f2pstarassist.plugin.TextUtil.stripChatIcon;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.*;
@@ -116,16 +117,37 @@ public class StarAssistPlugin extends Plugin {
 		log.info("F2P Star Assist stopped!");
 	}
 
+	public void fetchStarList2(Map<CrashedStar, Set<GroupKey>> knownStars) {
+		if (config.httpConnectionEnabled()) {
+
+			// the json representation of a Map<CrashedStar, Set<GroupKey>> could be something like { "star" : { /*properties of a star*/ }, "owned by" : [group1, group2, group3, ...] }
+
+			//TODO
+			//CompletableFuture<StarList> starList = starClient.requestStars2(knownStars);
+
+			//TODO receiveStars
+
+		}
+	}
+
 	public void fetchStarList(Set<GroupKey> sharingGroups) {
 		if (config.httpConnectionEnabled()) {
+
 			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars(sharingGroups);
 			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
 				} else {
 					log.debug("received stars from webserver: " + receivedStars);
+
+					//TODO is the response correct?
+
+
 					clientThread.invoke(() -> {
-						boolean foundNew = starCache.addAll(receivedStars);
+
+						//TODO
+						//receiveStars(receivedStars);
+
 						//TODO this logic is incorrect. we want to update the starcache based on the detection date of stars, and sizes.
 						//TODO also we want to remove stars from our local starcache if they are no longer present on the server.
 
@@ -134,11 +156,11 @@ public class StarAssistPlugin extends Plugin {
 						//TODO we probably want a 'StarList' class that the webserver can respond with. This class contains 3 fields: newStars, updatedStars, poofedStars.
 						//TODO this class contains the stars the client didn't yet know about, as well as star updates for stars the client already knew about.
 						//TODO and this will also include a list of poofed star keys for stars that have been deleted from the server.
+						//TODO this StarList object should also include which groups owns the found stars.
 
 						//TODO we also need to find out why updated star information isn't received from the server.
 						//TODO find out whether the issue is on the server side or client side.
-						if (foundNew)
-							updatePanel();
+						//TODO I FOUND OUT THAT THE SERVER SENDS OUTDATED INFO IN THE STAR LIST.
 					});
 				}
 			});
@@ -291,6 +313,41 @@ public class StarAssistPlugin extends Plugin {
 		return (config.sharePvpWorldStars() || !isPvP) && (config.shareWildernessStars() || !isWilderness);
 	}
 
+	public void receiveStars(StarList starList) {
+		Map<Set<CrashedStar>, Set<GroupKey>> fresh = starList.getFreshStars();
+		Set<StarUpdate> updates = starList.getStarUpdates();
+		Set<StarKey> deleted = starList.getDeletedStars();
+
+		//apply 'new' updates
+		for (Map.Entry<Set<CrashedStar>, Set<GroupKey>> entry : fresh.entrySet()) {
+			Set<CrashedStar> freshStars = entry.getKey();
+			Set<GroupKey> ownedBy = entry.getValue();
+			starCache.addAll(freshStars);
+			for (CrashedStar freshStar : freshStars) {
+				owningGroups.put(freshStar.getKey(), ownedBy);
+			}
+		}
+
+		//apply 'update' updates
+		for (StarUpdate starUpdate : updates) {
+			StarKey starKey = starUpdate.getKey();
+			CrashedStar star = starCache.get(starKey);
+			if (star == null)
+				starCache.add(new CrashedStar(starKey, starUpdate.getTier(), Instant.now(), User.unknown()));
+			else
+				star.setTier(starUpdate.getTier());
+		}
+
+		//apply 'delete' updates
+		for (StarKey deletedStar : deleted) {
+			starCache.remove(deletedStar);
+			owningGroups.remove(deletedStar);
+		}
+
+		updatePanel();
+	}
+
+
 	public void reportStarNew(CrashedStar star, Set<GroupKey> groupsToShareTheStarWith) {
 		log.debug("reporting new star: " + star);
 
@@ -329,13 +386,12 @@ public class StarAssistPlugin extends Plugin {
 		if (broadcast && shouldBroadcastStar(starKey)) {
 			Set<GroupKey> shareGroups = getOwningGroups(starKey);
 			CompletableFuture<CrashedStar> upToDateStar = starClient.updateStar(shareGroups, starKey, newTier);
-			upToDateStar.whenCompleteAsync((theStar, ex) -> {
+			upToDateStar.whenCompleteAsync((receivedStar, ex) -> {
 				if (ex != null) {
 					logServerError(ex);
 				}
-
-				else if (!theStar.equals(star)) {
-					clientThread.invoke(() -> { starCache.forceAdd(theStar); updatePanel(); });
+				else if (!receivedStar.equals(star)) {
+					clientThread.invoke(() -> { starCache.forceAdd(receivedStar); updatePanel(); });
 				}
 			});
 		}
@@ -348,7 +404,15 @@ public class StarAssistPlugin extends Plugin {
 		Set<GroupKey> broadcastGroups = removeStar(starKey);
 		updatePanel();
 		if (broadcast && shouldBroadcastStar(starKey) && broadcastGroups != null) {
-			starClient.deleteStar(broadcastGroups, starKey);
+			CompletableFuture<Void> deleteAction = starClient.deleteStar(broadcastGroups, starKey);
+			deleteAction.whenComplete((Void v, Throwable ex) -> {
+				if (ex != null) {
+					logServerError(ex);
+				}
+				else {
+					log.debug("star " + starKey + " deleted from server");
+				}
+			});
 		}
 	}
 
@@ -447,6 +511,7 @@ public class StarAssistPlugin extends Plugin {
 				if (starPoint != null && playerInStarRange(starPoint)) {
 					LocalPoint localPoint = LocalPoint.fromWorld(client, starPoint);
 					Tile tile = client.getScene().getTiles()[starPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
+
 					StarTier starTier = getStar(tile);
 					if (starTier == null) {
 						//a star that was in the cache is no longer there.
@@ -522,9 +587,6 @@ public class StarAssistPlugin extends Plugin {
 						if (newTier == null) {
 							//the star has poofed
 							reportStarGone(starKey, true);
-						} else {
-							//the star has degraded
-							reportStarUpdate(starKey, newTier, true);
 						}
 					}
 				});
@@ -553,6 +615,12 @@ public class StarAssistPlugin extends Plugin {
 			//we found a new star
 			CrashedStar newStar = new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName()));
 			reportStarNew(newStar, getSharingGroupsOwnFoundStars());
+		} else {
+			//the star already exists.
+			StarTier upToDateTier = StarIds.getTier(gameObject.getId());
+			if (upToDateTier != null) {
+				reportStarUpdate(starKey, upToDateTier, true);
+			}
 		}
 	}
 
@@ -579,7 +647,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (location = StarLingo.interpretLocation(message)) != null
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
-						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
 						reportStarNew(star, getSharingGroupsFriendsChat());
 					}
 				}
@@ -590,7 +658,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (location = StarLingo.interpretLocation(message)) != null
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
-						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
 						reportStarNew(star, getSharingGroupsClanChat());
 					}
 				}
@@ -602,7 +670,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (location = StarLingo.interpretLocation(message)) != null
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
-						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
 						reportStarNew(star, getSharingGroupsPrivateChat());
 					}
 				}
@@ -614,7 +682,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (location = StarLingo.interpretLocation(message)) != null
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
-						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(event.getName()));
+						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
 						reportStarNew(star, getSharingGroupsPublicChat());
 					}
 				}

@@ -57,8 +57,13 @@ public class StarClient {
                     try {
                         JsonElement jsonElement = jsonParser.parse(reader);
                         if (jsonElement instanceof JsonArray) {
+                            //legacy
                             future.complete(StarJson.crashedStars((JsonArray) jsonElement));
-                        } else {
+                        }
+
+                        //TODO we will expect a StarList
+
+                        else {
                             future.completeExceptionally(new ResponseException(call, "Expected a json array of crashed stars, but got: " + jsonElement));
                         }
                     } catch (RuntimeException e) {
