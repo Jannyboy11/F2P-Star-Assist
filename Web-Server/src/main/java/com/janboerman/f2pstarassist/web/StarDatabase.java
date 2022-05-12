@@ -237,7 +237,9 @@ public class StarDatabase {
             Set<CrashedStar> starSet = entry.getValue();
 
             Set<CrashedStar> fresh = new HashSet<>(starSet); fresh.removeAll(clientKnownStars);
-            freshStars.computeIfAbsent(fresh, k -> new HashSet<>()).add(group);
+            if (!fresh.isEmpty()) {
+                freshStars.computeIfAbsent(fresh, k -> new HashSet<>()).add(group);
+            }
         }
 
         //calculate updates
@@ -252,9 +254,11 @@ public class StarDatabase {
         }
 
         //calculate deletes
+        Set<StarKey> serverStarKeys = serverStars.stream().map(CrashedStar::getKey).collect(Collectors.toSet());
         for (CrashedStar clientStar : clientKnownStars) {
-            if (!serverStars.contains(clientStar)) {
-                deleted.add(clientStar.getKey());
+            StarKey clientStarKey = clientStar.getKey();
+            if (!serverStarKeys.contains(clientStarKey)) {
+                deleted.add(clientStarKey);
             }
         }
 
