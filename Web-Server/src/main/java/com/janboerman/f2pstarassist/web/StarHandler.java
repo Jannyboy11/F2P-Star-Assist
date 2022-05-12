@@ -83,9 +83,24 @@ class StarHandler extends AbstractHandler {
                         response.getWriter().write(responseBody);
 
                         logger.info("Replied with star list: " + responseBody);
-                    }
+                    } else if (jsonElement instanceof JsonObject jsonObject) {
+                        StarPacket starPacket = StarJson.starPacket(jsonObject);
 
-                    //TODO reply with StarList
+                        Set<GroupKey> groupKeys = starPacket.getGroups();
+                        StarRequest starRequest = (StarRequest) starPacket.getPayload();
+                        Set<CrashedStar> knownStars = starRequest.getKnownStars();
+
+                        //calculation
+                        StarList diff = starDatabase.calculateDiff(groupKeys, knownStars);
+
+                        //response
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        response.setContentType(APPLICATION_JSON);
+                        String responseBody = StarJson.starListJson(diff).toString();
+                        response.getWriter().write(responseBody);
+
+                        logger.info("Replied with star list: " + responseBody);
+                    }
 
                     else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -6,6 +6,7 @@ import com.janboerman.f2pstarassist.common.CrashedStar;
 import com.janboerman.f2pstarassist.common.GroupKey;
 import com.janboerman.f2pstarassist.common.StarCache;
 import com.janboerman.f2pstarassist.common.StarKey;
+import com.janboerman.f2pstarassist.common.StarList;
 import com.janboerman.f2pstarassist.common.StarTier;
 import com.janboerman.f2pstarassist.common.StarUpdate;
 import com.janboerman.f2pstarassist.common.User;
@@ -21,6 +22,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class StarDatabase {
 
@@ -219,5 +222,44 @@ public class StarDatabase {
         }
         return result;
     }
+
+    public StarList calculateDiff(Set<GroupKey> forGroups, Set<CrashedStar> clientKnownStars) {
+        Map<Set<CrashedStar>, Set<GroupKey>> freshStars = new HashMap<>();
+        Set<StarUpdate> updates = new HashSet<>();
+        Set<StarKey> deleted = new HashSet<>();
+
+        Map<StarKey, StarTier> clientStarTiers = clientKnownStars.stream().collect(Collectors.toMap(CrashedStar::getKey, CrashedStar::getTier));
+        Map<GroupKey, Set<CrashedStar>> starsForGroups = forGroups.stream().collect(Collectors.toMap(Function.identity(), this::getStars));
+
+        //get calculate fresh stars per group set
+        for (Map.Entry<GroupKey, Set<CrashedStar>> entry : starsForGroups.entrySet()) {
+            GroupKey group = entry.getKey();
+            Set<CrashedStar> starSet = entry.getValue();
+
+            Set<CrashedStar> fresh = new HashSet<>(starSet); fresh.removeAll(clientKnownStars);
+            freshStars.computeIfAbsent(fresh, k -> new HashSet<>()).add(group);
+        }
+
+        //calculate updates
+        Set<CrashedStar> serverStars = getStars(forGroups);
+        for (CrashedStar serverStar : serverStars) {
+            StarKey key = serverStar.getKey();
+            if (clientKnownStars.contains(serverStar)) {
+                if (serverStar.getTier().compareTo(clientStarTiers.get(key)) < 0) {
+                    updates.add(new StarUpdate(key, serverStar.getTier()));
+                }
+            }
+        }
+
+        //calculate deletes
+        for (CrashedStar clientStar : clientKnownStars) {
+            if (!serverStars.contains(clientStar)) {
+                deleted.add(clientStar.getKey());
+            }
+        }
+
+        return new StarList(freshStars, updates, deleted);
+    }
+
 
 }

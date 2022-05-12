@@ -117,50 +117,18 @@ public class StarAssistPlugin extends Plugin {
 		log.info("F2P Star Assist stopped!");
 	}
 
-	public void fetchStarList2(Map<CrashedStar, Set<GroupKey>> knownStars) {
-		if (config.httpConnectionEnabled()) {
-
-			// the json representation of a Map<CrashedStar, Set<GroupKey>> could be something like { "star" : { /*properties of a star*/ }, "owned by" : [group1, group2, group3, ...] }
-
-			//TODO
-			//CompletableFuture<StarList> starList = starClient.requestStars2(knownStars);
-
-			//TODO receiveStars
-
-		}
-	}
-
 	public void fetchStarList(Set<GroupKey> sharingGroups) {
 		if (config.httpConnectionEnabled()) {
 
-			CompletableFuture<Set<CrashedStar>> starFuture = starClient.requestStars(sharingGroups);
+			CompletableFuture<StarList> starFuture = starClient.requestStars(sharingGroups, starCache.getStars());
 			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
 				} else {
 					log.debug("received stars from webserver: " + receivedStars);
 
-					//TODO is the response correct?
-
-
 					clientThread.invoke(() -> {
-
-						//TODO
-						//receiveStars(receivedStars);
-
-						//TODO this logic is incorrect. we want to update the starcache based on the detection date of stars, and sizes.
-						//TODO also we want to remove stars from our local starcache if they are no longer present on the server.
-
-						//TODO maybe the client should send the star keys from the stars it knows about,
-						//TODO and then the server can calculate and reply with star updates that the client can then apply locally.
-						//TODO we probably want a 'StarList' class that the webserver can respond with. This class contains 3 fields: newStars, updatedStars, poofedStars.
-						//TODO this class contains the stars the client didn't yet know about, as well as star updates for stars the client already knew about.
-						//TODO and this will also include a list of poofed star keys for stars that have been deleted from the server.
-						//TODO this StarList object should also include which groups owns the found stars.
-
-						//TODO we also need to find out why updated star information isn't received from the server.
-						//TODO find out whether the issue is on the server side or client side.
-						//TODO I FOUND OUT THAT THE SERVER SENDS OUTDATED INFO IN THE STAR LIST.
+						receiveStars(receivedStars);
 					});
 				}
 			});
@@ -324,7 +292,7 @@ public class StarAssistPlugin extends Plugin {
 			Set<GroupKey> ownedBy = entry.getValue();
 			starCache.addAll(freshStars);
 			for (CrashedStar freshStar : freshStars) {
-				owningGroups.put(freshStar.getKey(), ownedBy);
+				owningGroups.computeIfAbsent(freshStar.getKey(), k -> new HashSet<>()).addAll(ownedBy);
 			}
 		}
 
@@ -333,8 +301,9 @@ public class StarAssistPlugin extends Plugin {
 			StarKey starKey = starUpdate.getKey();
 			CrashedStar star = starCache.get(starKey);
 			if (star == null)
+				//shouldn't really happen, but just in case.
 				starCache.add(new CrashedStar(starKey, starUpdate.getTier(), Instant.now(), User.unknown()));
-			else
+			else if (starUpdate.getTier().compareTo(star.getTier()) < 0)
 				star.setTier(starUpdate.getTier());
 		}
 

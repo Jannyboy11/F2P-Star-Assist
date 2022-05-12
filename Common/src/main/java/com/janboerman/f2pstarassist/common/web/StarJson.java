@@ -35,6 +35,14 @@ public class StarJson {
         return result;
     }
 
+    public static StarRequest starRequest(JsonArray starRequest) {
+        return new StarRequest(crashedStars(starRequest));
+    }
+
+    public static JsonArray starRequestJson(StarRequest starRequest) {
+        return crashedStarsJson(starRequest.getKnownStars());
+    }
+
     public static StarPacket starPacket(JsonObject starPacket) {
         Set<GroupKey> groups = readGroupKeys(starPacket);
         Payload payload = readPayload(starPacket);
@@ -238,6 +246,9 @@ public class StarJson {
             case "star update":
                 JsonObject starUpdatePayload = (JsonObject) payload;
                 return starUpdate(starUpdatePayload);
+            case "star request":
+                JsonArray starRequestPayload = (JsonArray) payload;
+                return starRequest(starRequestPayload);
             default:
                 return null;
         }
@@ -256,6 +267,10 @@ public class StarJson {
             StarUpdate starUpdate = (StarUpdate) payload;
             starPacket.add("type", new JsonPrimitive("star update"));
             starPacket.add("payload", starUpdateJson(starUpdate));
+        } else if (payload instanceof StarRequest) {
+            StarRequest starRequest = (StarRequest) payload;
+            starPacket.add("type", new JsonPrimitive("star request"));
+            starPacket.add("payload", starRequestJson(starRequest));
         }
     }
 
