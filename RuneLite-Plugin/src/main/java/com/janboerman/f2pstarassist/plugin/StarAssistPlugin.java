@@ -334,8 +334,12 @@ public class StarAssistPlugin extends Plugin {
 					logServerError(ex);
 				} else if (optionalStar.isPresent()) {
 					CrashedStar theStar = optionalStar.get();
+					StarKey theKey = theStar.getKey();
 					clientThread.invoke(() -> {
-						starCache.forceAdd(theStar);
+						CrashedStar existingStar = starCache.get(theKey);
+						if (existingStar == null) {
+							starCache.forceAdd(theStar);
+						}
 						updatePanel();
 					});
 				}
