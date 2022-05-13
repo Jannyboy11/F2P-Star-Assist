@@ -74,16 +74,21 @@ public class JsonTest {
         return new StarUpdate(makeStarKey(), makeTier());
     }
 
+    private StarRequest makeStarRequest() {
+        return new StarRequest(Stream.generate(this::makeCrashedStar).limit(random.nextInt(10)).collect(Collectors.toSet()));
+    }
+
     private CrashedStar makeCrashedStar() {
         return new CrashedStar(makeTier(), makeStarLocation(), makeWorld(), makeDetectedAt(), makeDetectedBy());
     }
 
     private StarPacket makeStarPacket() {
         Payload payload;
-        switch (random.nextInt(3)) {
+        switch (random.nextInt(4)) {
             case 0: payload = makeCrashedStar(); break;
             case 1: payload = makeStarKey(); break;
             case 2: payload = makeStarUpdate(); break;
+            case 3: payload = makeStarRequest(); break;
             default: payload = null;
         }
         return new StarPacket(makeGroups(), payload);
