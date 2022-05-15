@@ -123,13 +123,13 @@ public class StarLingo {
 
         //wildy
         if (containsAnyIgnoreCase(text, "wildy", "wilderness"))
-            if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hobgoblins"))
+            if (containsAnyIgnoreCase(text, "centre", "center", "bandit", "camp", "hobgoblins", "skeles", "skeletons"))
                 return StarLocation.WILDERNESS_CENTRE_MINE;
             else if (containsAnyIgnoreCase(text, "dark", "warrior", "fortress")
                     || containsAllIgnoreCase(text, "south", "west"))
                 return StarLocation.WILDERNESS_SOUTH_WEST_MINE;
             else if ((containsIgnoreCase(text, "south") && !containsIgnoreCase(text, "west"))
-                    || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy", "skeles", "skeletons"))
+                    || containsAnyIgnoreCase(text, "mage", "zamorak", "zammy"))
                 return StarLocation.WILDERNESS_SOUTH_MINE;
         if (containsAnyIgnoreCase(text, "rune", "runite", "lava", "maze", "rr"))
             return StarLocation.WILDERNESS_RUNITE_MINE;

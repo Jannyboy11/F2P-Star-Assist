@@ -20,7 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,7 +30,7 @@ public class StarDatabase {
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofHours(2).plusMinutes(30))
             .build();
-    private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
+    private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
     private final StarListener starListener;
 
     public StarDatabase(StarListener listener) {
@@ -46,6 +46,8 @@ public class StarDatabase {
                     starListener.onRemove(groupKey, starKey); //notify discord bot
                 }
             }
+
+            owningGroups.remove(starKey);
         });
     }
 
@@ -232,6 +234,7 @@ public class StarDatabase {
         Map<GroupKey, Set<CrashedStar>> starsForGroups = forGroups.stream().collect(Collectors.toMap(Function.identity(), this::getStars));
 
         //get calculate fresh stars per group set
+        //TODO this contains a bug - currently a star is considered fresh if the server knows about the star, but with a higher tier.
         for (Map.Entry<GroupKey, Set<CrashedStar>> entry : starsForGroups.entrySet()) {
             GroupKey group = entry.getKey();
             Set<CrashedStar> starSet = entry.getValue();
@@ -265,5 +268,9 @@ public class StarDatabase {
         return new StarList(freshStars, updates, deleted);
     }
 
+    @Override
+    public String toString() {
+        return "StarDatabase{groupCaches = " + new java.util.LinkedHashMap<>(groupCaches.asMap()) + ", owningGroups = " + owningGroups + "}";
+    }
 
 }

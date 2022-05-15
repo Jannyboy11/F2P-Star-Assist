@@ -121,8 +121,6 @@ class StarHandler extends AbstractHandler {
                 try {
                     JsonElement jsonElement = JsonParser.parseReader(request.getReader());
 
-                    //TODO html-escape the 'discovered by' account
-
                     logger.info("Received 'send star': " + jsonElement);
 
                     if (jsonElement instanceof JsonObject jsonObject) {
@@ -182,6 +180,9 @@ class StarHandler extends AbstractHandler {
 
                         CrashedStar resultStar;
                         Map<GroupKey, CrashedStar> knownStarsByGroup = starDatabase.update(groups, starUpdate);
+
+                        System.out.println("DEBUG: knownStarsByGroup = " + knownStarsByGroup); //TODO why is this empty?
+
                         if (!knownStarsByGroup.isEmpty()) {
                             //result is the earliest found star
                             resultStar = knownStarsByGroup.values().stream().reduce(BinaryOperator.minBy(Comparator.comparing(CrashedStar::getDetectedAt))).get();
@@ -224,9 +225,7 @@ class StarHandler extends AbstractHandler {
                         StarKey starKey = (StarKey) starPacket.getPayload();
 
                         //apply update
-                        for (GroupKey groupKey : groups) {
-                            starDatabase.remove(groupKey, starKey);
-                        }
+                        starDatabase.remove(groups, starKey);
 
                         //response
                         response.setStatus(HttpServletResponse.SC_NO_CONTENT);

@@ -43,7 +43,7 @@ public class StarAssistPlugin extends Plugin {
 
 	//populated at construction
 	private final StarCache starCache;
-	private final WeakHashMap<StarKey, Set<GroupKey>> owningGroups = new WeakHashMap<>();
+	private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
 	private final Map<String, GroupKey> groups = new HashMap<>();
 
 	//populated right after construction
@@ -66,14 +66,20 @@ public class StarAssistPlugin extends Plugin {
 				clientThread.invokeLater(this::updatePanel);
 			}
 
-			//if a hint arrow pointing to the removed star exists, then clear it.
 			clientThread.invoke(() -> {
 				CrashedStar removedStar = removalNotification.getValue();
+
+				//if a hint arrow pointing to the removed star exists, then clear it.
 				if (removedStar.getWorld() == client.getWorld()) {
 					WorldPoint starPoint = StarPoints.fromLocation(removedStar.getLocation());
 					if (client.hasHintArrow() && client.getHintArrowPoint().equals(starPoint)) {
 						client.clearHintArrow();
 					}
+				}
+
+				//clear owning groups
+				if (removalNotification.wasEvicted()) {
+					owningGroups.remove(removedStar.getKey());
 				}
 			});
 		});
@@ -113,6 +119,10 @@ public class StarAssistPlugin extends Plugin {
 		clientToolbar.removeNavigation(navButton);
 		fetcherTimer.shutdownNow();
 		fetcherTimer = null;
+
+		starCache.clear();
+		owningGroups.clear();
+		groups.clear();
 
 		log.info("F2P Star Assist stopped!");
 	}
@@ -309,8 +319,7 @@ public class StarAssistPlugin extends Plugin {
 
 		//apply 'delete' updates
 		for (StarKey deletedStar : deleted) {
-			starCache.remove(deletedStar);
-			owningGroups.remove(deletedStar);
+			reportStarGone(deletedStar, false);
 		}
 
 		updatePanel();
@@ -333,12 +342,12 @@ public class StarAssistPlugin extends Plugin {
 				if (ex != null) {
 					logServerError(ex);
 				} else if (optionalStar.isPresent()) {
-					CrashedStar theStar = optionalStar.get();
-					StarKey theKey = theStar.getKey();
+					CrashedStar receivedStar = optionalStar.get();
+					StarKey receivedStarKey = receivedStar.getKey();
 					clientThread.invoke(() -> {
-						CrashedStar existingStar = starCache.get(theKey);
-						if (existingStar == null) {
-							starCache.forceAdd(theStar);
+						CrashedStar existingStar = starCache.get(receivedStarKey);
+						if (existingStar == null) { //this could theoretically happen if the client received a 'delete' from the server.
+							starCache.forceAdd(receivedStar);
 						}
 						updatePanel();
 					});
@@ -374,9 +383,8 @@ public class StarAssistPlugin extends Plugin {
 		log.debug("reporting star gone: " + starKey);
 		//is there ever a situation in which we don't want to broadcast, regardless of the config?
 
-		Set<GroupKey> broadcastGroups = removeStar(starKey);
 		updatePanel();
-		if (broadcast && shouldBroadcastStar(starKey) && broadcastGroups != null) {
+		if (broadcast && shouldBroadcastStar(starKey) && (broadcastGroups = removeStar(starKey)) != null) {
 			CompletableFuture<Void> deleteAction = starClient.deleteStar(broadcastGroups, starKey);
 			deleteAction.whenComplete((Void v, Throwable ex) -> {
 				if (ex != null) {
@@ -487,11 +495,15 @@ public class StarAssistPlugin extends Plugin {
 
 					StarTier starTier = getStar(tile);
 					if (starTier == null) {
-						//a star that was in the cache is no longer there.
-						reportStarGone(star.getKey(), true);
-						if (starPoint.equals(client.getHintArrowPoint())) {
-							client.clearHintArrow();
-						}
+						//a star that was in the cache might no longer be there. check whether it still absent in the next tick.
+						clientThread.invokeLater(() -> {
+							if (getStar(tile) == null) {
+								reportStarGone(star.getKey(), true);
+								if (starPoint.equals(client.getHintArrowPoint())) {
+									client.clearHintArrow();
+								}
+							}
+						});
 					}
 
 					else if (playerInRange(starPoint, 4) && starPoint.equals(client.getHintArrowPoint())) {
