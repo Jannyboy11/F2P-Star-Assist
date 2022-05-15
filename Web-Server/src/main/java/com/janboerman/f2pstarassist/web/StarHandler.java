@@ -181,8 +181,6 @@ class StarHandler extends AbstractHandler {
                         CrashedStar resultStar;
                         Map<GroupKey, CrashedStar> knownStarsByGroup = starDatabase.update(groups, starUpdate);
 
-                        System.out.println("DEBUG: knownStarsByGroup = " + knownStarsByGroup); //TODO why is this empty?
-
                         if (!knownStarsByGroup.isEmpty()) {
                             //result is the earliest found star
                             resultStar = knownStarsByGroup.values().stream().reduce(BinaryOperator.minBy(Comparator.comparing(CrashedStar::getDetectedAt))).get();
