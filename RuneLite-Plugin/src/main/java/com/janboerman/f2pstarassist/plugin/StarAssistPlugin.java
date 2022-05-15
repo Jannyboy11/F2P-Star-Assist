@@ -381,10 +381,11 @@ public class StarAssistPlugin extends Plugin {
 
 	public void reportStarGone(StarKey starKey, boolean broadcast) {
 		log.debug("reporting star gone: " + starKey);
-		//is there ever a situation in which we don't want to broadcast, regardless of the config?
 
+		Set<GroupKey> broadcastGroups = removeStar(starKey);
 		updatePanel();
-		if (broadcast && shouldBroadcastStar(starKey) && (broadcastGroups = removeStar(starKey)) != null) {
+
+		if (broadcast && shouldBroadcastStar(starKey) && broadcastGroups != null) {
 			CompletableFuture<Void> deleteAction = starClient.deleteStar(broadcastGroups, starKey);
 			deleteAction.whenComplete((Void v, Throwable ex) -> {
 				if (ex != null) {
@@ -496,14 +497,10 @@ public class StarAssistPlugin extends Plugin {
 					StarTier starTier = getStar(tile);
 					if (starTier == null) {
 						//a star that was in the cache might no longer be there. check whether it still absent in the next tick.
-						clientThread.invokeLater(() -> {
-							if (getStar(tile) == null) {
-								reportStarGone(star.getKey(), true);
-								if (starPoint.equals(client.getHintArrowPoint())) {
-									client.clearHintArrow();
-								}
-							}
-						});
+						reportStarGone(star.getKey(), true);
+						if (starPoint.equals(client.getHintArrowPoint())) {
+							client.clearHintArrow();
+						}
 					}
 
 					else if (playerInRange(starPoint, 4) && starPoint.equals(client.getHintArrowPoint())) {
