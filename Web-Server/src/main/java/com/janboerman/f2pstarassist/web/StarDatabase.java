@@ -20,7 +20,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 public class StarDatabase {
 
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
-            .expireAfterWrite(Duration.ofHours(2).plusMinutes(30))
+            .expireAfterAccess(Duration.ofHours(2).plusMinutes(30))
             .build();
     private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
     private final StarListener starListener;
