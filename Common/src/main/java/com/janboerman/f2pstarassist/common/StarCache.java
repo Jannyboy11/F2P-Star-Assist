@@ -2,6 +2,7 @@ package com.janboerman.f2pstarassist.common;
 
 import com.google.common.cache.*;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -9,7 +10,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.TimeUnit;
 
 public class StarCache {
 
@@ -21,7 +21,7 @@ public class StarCache {
 
     private StarCache(CacheBuilder<StarKey, CrashedStar> cacheBuilder) {
         this.cache = cacheBuilder
-                .expireAfterWrite(2, TimeUnit.HOURS)
+                .expireAfterWrite(Duration.ofHours(2).plusMinutes(30))
                 .build();
     }
 

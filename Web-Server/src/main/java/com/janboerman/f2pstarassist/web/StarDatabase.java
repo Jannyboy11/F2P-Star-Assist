@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class StarDatabase {
 
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
-            .expireAfterAccess(Duration.ofHours(2).plusMinutes(30))
+            .expireAfterWrite(Duration.ofHours(2).plusMinutes(30))
             .build();
     private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
     private final StarListener starListener;
