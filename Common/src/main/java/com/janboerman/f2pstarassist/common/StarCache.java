@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.TimeUnit;
 
 public class StarCache {
 
@@ -21,7 +22,7 @@ public class StarCache {
 
     private StarCache(CacheBuilder<StarKey, CrashedStar> cacheBuilder) {
         this.cache = cacheBuilder
-                .expireAfterWrite(Duration.ofHours(2).plusMinutes(30))
+                .expireAfterWrite(150, TimeUnit.MINUTES)    // 2 hours, 30 minutes
                 .build();
     }
 
