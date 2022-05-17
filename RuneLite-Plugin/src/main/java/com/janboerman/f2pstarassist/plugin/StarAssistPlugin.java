@@ -111,7 +111,7 @@ public class StarAssistPlugin extends Plugin {
 			clientThread.invoke(() -> fetchStarList(toSet(groups.values())));
 		}, 0, 15, TimeUnit.MINUTES);
 
-		updatePanel();
+		clientThread.invoke(() -> updatePanel());
 
 		log.info("F2P Star Assist started!");
 	}
