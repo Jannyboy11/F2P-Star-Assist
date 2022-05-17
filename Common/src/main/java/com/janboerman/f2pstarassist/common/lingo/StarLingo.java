@@ -98,7 +98,7 @@ public class StarLingo {
             return StarLocation.VARROCK_SOUTH_EAST_MINE;
 
         //al kharid, duel arena
-        if (containsAllIgnoreCase(text, "al", "kharid") || containsAnyIgnoreCase(text, "alk", "ally"))
+        if (containsAllIgnoreCase(text, "al", "kharid") || containsAnyIgnoreCase(text, "alk", "ally", "ak"))
             if (containsIgnoreCase(text, "bank"))
                 return StarLocation.AL_KHARID_BANK;
             else if (containsIgnoreCase(text, "mine"))
