@@ -234,14 +234,13 @@ public class StarDatabase {
         Map<GroupKey, Set<CrashedStar>> starsForGroups = forGroups.stream().collect(Collectors.toMap(Function.identity(), this::getStars));
 
         //get calculate fresh stars per group set
-        //TODO this contains a bug - currently a star is considered fresh if the server knows about the star, but with a higher tier.
         for (Map.Entry<GroupKey, Set<CrashedStar>> entry : starsForGroups.entrySet()) {
             GroupKey group = entry.getKey();
             Set<CrashedStar> starSet = entry.getValue();
 
-            Set<CrashedStar> fresh = new HashSet<>(starSet); fresh.removeAll(clientKnownStars);
+            Map<StarKey, CrashedStar> fresh = starSet.stream().collect(Collectors.toMap(CrashedStar::getKey, Function.identity())); clientKnownStars.forEach(star -> fresh.remove(star.getKey()));
             if (!fresh.isEmpty()) {
-                freshStars.computeIfAbsent(fresh, k -> new HashSet<>()).add(group);
+                freshStars.computeIfAbsent(new LinkedHashSet<>(fresh.values()), k -> new HashSet<>()).add(group);
             }
         }
 
