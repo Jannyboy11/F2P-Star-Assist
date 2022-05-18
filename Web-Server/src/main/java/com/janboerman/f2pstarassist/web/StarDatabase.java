@@ -225,7 +225,7 @@ public class StarDatabase {
         return result;
     }
 
-    public StarList calculateDiff(Set<GroupKey> forGroups, Set<CrashedStar> clientKnownStars) {
+    public synchronized StarList calculateDiff(Set<GroupKey> forGroups, Set<CrashedStar> clientKnownStars) {
         Map<Set<CrashedStar>, Set<GroupKey>> freshStars = new HashMap<>();
         Set<StarUpdate> updates = new HashSet<>();
         Set<StarKey> deleted = new HashSet<>();
@@ -269,7 +269,7 @@ public class StarDatabase {
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "StarDatabase{groupCaches = " + new java.util.LinkedHashMap<>(groupCaches.asMap()) + ", owningGroups = " + owningGroups + "}";
     }
 
