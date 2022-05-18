@@ -21,13 +21,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class StarDatabase {
 
     private final Cache<GroupKey, StarCache> groupCaches = CacheBuilder.newBuilder()
-            .expireAfterAccess(Duration.ofHours(2).plusMinutes(30))
+            .expireAfterAccess(2, TimeUnit.HOURS)   //expire after access (not just writes), because very often it is the StarCache that gets written to, not the groupCaches.
             .build();
     private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
     private final StarListener starListener;
