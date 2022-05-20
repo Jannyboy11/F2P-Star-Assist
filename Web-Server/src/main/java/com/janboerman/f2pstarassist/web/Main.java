@@ -3,6 +3,8 @@ package com.janboerman.f2pstarassist.web;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.janboerman.f2pstarassist.web.options.BooleanConverter;
+import com.janboerman.f2pstarassist.web.options.PortConverter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -28,7 +30,11 @@ public class Main {
                 .withRequiredArg()
                 .withValuesConvertedBy(new PortConverter())
                 .defaultsTo(80);
-        optionParser.accepts("ssl", "use HTTPS instead of HTTP").availableUnless(configSpec);
+        final OptionSpec<Boolean> sslSpec = optionParser.accepts("ssl", "use HTTPS instead of HTTP")
+                .availableUnless(configSpec)
+                .withOptionalArg()
+                .withValuesConvertedBy(new BooleanConverter())
+                .defaultsTo(false);
         final OptionSpec<Path> keyStorePathSpec = optionParser.accepts("key-store-path", "path to the key store to use for SSL")
                 .requiredIf("ssl")
                 .withRequiredArg()
@@ -52,7 +58,7 @@ public class Main {
         }
 
         final int port = optionSet.has(portSpec) ? optionSet.valueOf(portSpec) : config.port();
-        final boolean ssl = optionSet.has("ssl") || config.ssl();
+        final boolean ssl = optionSet.has(sslSpec) ? optionSet.valueOf(sslSpec) : config.ssl();
         final Path keyStorePath = optionSet.has(keyStorePathSpec) ? optionSet.valueOf(keyStorePathSpec) : config.keyStore();
         final String keyStorePassword = optionSet.has(keyStorePathSpec) ? optionSet.valueOf(keyStorePasswordSpec) : config.keyStorePassword();
 

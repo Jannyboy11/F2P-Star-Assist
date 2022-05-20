@@ -1,4 +1,4 @@
-package com.janboerman.f2pstarassist.web;
+package com.janboerman.f2pstarassist.web.options;
 
 import joptsimple.ValueConversionException;
 import joptsimple.ValueConverter;
