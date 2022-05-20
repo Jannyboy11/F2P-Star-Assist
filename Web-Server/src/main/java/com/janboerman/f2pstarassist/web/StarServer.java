@@ -26,7 +26,8 @@ public class StarServer {
         final ServerConnector serverConnector;
 
         final int port = config.port();
-        if (config.ssl()) {
+        final boolean ssl = config.ssl();
+        if (ssl) {
             HttpConfiguration https = new HttpConfiguration();
             https.addCustomizer(new SecureRequestCustomizer());
 
@@ -47,7 +48,7 @@ public class StarServer {
         final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
         server.setHandler(new StarHandler(starDatabase, logger));
 
-        logger.info("Started StarServer on port " + port + "!");
+        logger.info("Started StarServer on port " + port + "!" + (ssl ? " (SSL-enabled)" : ""));
 
         server.start();
         server.join();
