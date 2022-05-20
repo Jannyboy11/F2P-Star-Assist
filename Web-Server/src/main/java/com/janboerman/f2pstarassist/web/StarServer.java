@@ -42,6 +42,7 @@ public class StarServer {
             serverConnector = new ServerConnector(server);
         }
         serverConnector.setPort(port);
+        server.setConnectors(new ServerConnector[] {serverConnector});
 
         final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
         server.setHandler(new StarHandler(starDatabase, logger));
