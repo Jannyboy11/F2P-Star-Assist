@@ -1,41 +1,55 @@
 package com.janboerman.f2pstarassist.web;
 
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-import joptsimple.OptionSpec;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.util.logging.Logger;
 
 public class StarServer {
 
-    private StarServer() {
+    private final Configuration config;
+    private final Logger logger;
+
+    public StarServer(Configuration config, Logger logger) {
+        this.config = config;
+        this.logger = logger;
     }
 
-    public static void main(String[] args) throws Exception {
-        final Logger logger = Logger.getLogger("star server");
+    public void start() throws Exception {
 
-        final OptionParser optionParser = new OptionParser();
-        final OptionSpec<Integer> portSpec = optionParser.accepts("port", "port number on which to run the web server")
-                .withRequiredArg()
-                .withValuesConvertedBy(new PortConverter())
-                .defaultsTo(8080);
-        //TODO option to configure the file used for the unix domain socket for communication with the discord bot
-        final OptionSet options = optionParser.parse(args);
+        final Server server = new Server();
+        final ServerConnector serverConnector;
 
-        final int port = options.valueOf(portSpec);
+        final int port = config.port();
+        if (config.ssl()) {
+            HttpConfiguration https = new HttpConfiguration();
+            https.addCustomizer(new SecureRequestCustomizer());
 
-        final Server server = new Server(port);
+            SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+            sslContextFactory.setKeyStorePath(config.keyStore().toString());
+            sslContextFactory.setKeyStorePassword(config.keyStorePassword());
+            sslContextFactory.setKeyManagerPassword(config.keyStorePassword());
+
+            SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, "http/1.1");
+
+            serverConnector = new ServerConnector(server, sslConnectionFactory, new HttpConnectionFactory(https));
+        } else {
+            serverConnector = new ServerConnector(server);
+        }
+        serverConnector.setPort(port);
+
         final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
         server.setHandler(new StarHandler(starDatabase, logger));
-
-        //TODO set HTTPS (SSL) https://dzone.com/articles/adding-ssl-support-embedded but use LetsEncrypt instead.
 
         logger.info("Started StarServer on port " + port + "!");
 
         server.start();
         server.join();
     }
-
 
 }

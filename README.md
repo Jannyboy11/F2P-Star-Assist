@@ -73,8 +73,8 @@ For 4 different chat message types you can configure to which groups they are sh
 
 E.g. continuing the example of star hunting with two separated groups (cc and fc) use the following configuration:
 
-At `Share friends chat calls with group:` configure it as `A Friend's chat`. \
-At `Share clan chat calls with group:` configure it as `BestClanOSRS`.
+At `Share friends chat calls with groups:` configure it as `A Friend's chat`. \
+At `Share clan chat calls with groups:` configure it as `BestClanOSRS`.
 
 To share calls with multiple groups, you can put multiple group names in the same text box, separated by a semicolon.
 

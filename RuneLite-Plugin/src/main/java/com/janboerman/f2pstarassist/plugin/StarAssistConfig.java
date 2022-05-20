@@ -141,7 +141,7 @@ public interface StarAssistConfig extends Config {
 	@ConfigItem(
 			position = 4,
 			keyName = "share private chat calls",
-			name = "Share private chat calls with group:",
+			name = "Share private chat calls with groups:",
 			description = "Share private chat calls with your group",
 			section = SHARING_SETTINGS_SECTION
 	)
@@ -152,7 +152,7 @@ public interface StarAssistConfig extends Config {
 	@ConfigItem(
 			position = 5,
 			keyName = "share friends chat calls",
-			name = "Share friends chat calls with group:",
+			name = "Share friends chat calls with groups:",
 			description = "Share friends chat calls with your group",
 			section = SHARING_SETTINGS_SECTION
 	)
@@ -163,7 +163,7 @@ public interface StarAssistConfig extends Config {
 	@ConfigItem(
 			position = 6,
 			keyName = "share clan chat calls",
-			name = "Share clan chat calls with group:",
+			name = "Share clan chat calls with groups:",
 			description = "Share clan chat calls with your group",
 			section = SHARING_SETTINGS_SECTION
 	)
@@ -174,7 +174,7 @@ public interface StarAssistConfig extends Config {
 	@ConfigItem(
 			position = 7,
 			keyName = "share public chat calls",
-			name = "Share public chat calls with group:",
+			name = "Share public chat calls with groups:",
 			description = "Share public chat calls with your group",
 			section = SHARING_SETTINGS_SECTION
 	)
