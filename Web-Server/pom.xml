@@ -53,7 +53,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.janboerman.f2pstarassist.web.StarServer</mainClass>
+                            <mainClass>com.janboerman.f2pstarassist.web.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
