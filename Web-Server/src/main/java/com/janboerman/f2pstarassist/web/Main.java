@@ -26,21 +26,17 @@ public class Main {
                 .withValuesConvertedBy(new PathConverter())
                 .defaultsTo(Path.of("starserver-config.json"));
         final OptionSpec<Integer> portSpec = optionParser.accepts("port", "port number on which to run the web server")
-                .availableUnless(configSpec)
                 .withRequiredArg()
                 .withValuesConvertedBy(new PortConverter())
                 .defaultsTo(80);
         final OptionSpec<Boolean> sslSpec = optionParser.accepts("ssl", "use HTTPS instead of HTTP")
-                .availableUnless(configSpec)
                 .withOptionalArg()
                 .withValuesConvertedBy(new BooleanConverter())
                 .defaultsTo(false);
         final OptionSpec<Path> keyStorePathSpec = optionParser.accepts("key-store-path", "path to the key store to use for SSL")
-                .requiredIf("ssl")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter());
         final OptionSpec<String> keyStorePasswordSpec = optionParser.accepts("key-store-password", "password to use for the key store")
-                .requiredIf("ssl")
                 .withRequiredArg();
 
         final OptionSet optionSet = optionParser.parse(args);
