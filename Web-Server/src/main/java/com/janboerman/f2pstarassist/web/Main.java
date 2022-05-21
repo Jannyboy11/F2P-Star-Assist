@@ -37,7 +37,8 @@ public class Main {
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter());
         final OptionSpec<String> keyStorePasswordSpec = optionParser.accepts("key-store-password", "password to use for the key store")
-                .withRequiredArg();
+                .withRequiredArg()
+                .defaultsTo("changeit");
 
         final OptionSet optionSet = optionParser.parse(args);
 
