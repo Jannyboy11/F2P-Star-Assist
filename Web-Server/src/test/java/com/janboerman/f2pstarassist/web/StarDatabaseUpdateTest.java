@@ -14,8 +14,9 @@ import java.util.function.BinaryOperator;
 
 public class StarDatabaseUpdateTest {
 
-    private static <T> Set<T> setOf(T item) {
-        return new java.util.LinkedHashSet<T>() { { add(item); } };
+    @SafeVarargs
+    private static <T> Set<T> setOf(T... items) {
+        return new java.util.LinkedHashSet<T>(Arrays.asList(items));
     }
 
     @Test
@@ -89,6 +90,27 @@ public class StarDatabaseUpdateTest {
         starDatabase.add(groups, crashedStar);
         starDatabase.remove(groups, starKey);
         assertTrue(starDatabase.getStars(groups).isEmpty());
+    }
+
+    @Test
+    public void testDiff() {
+        final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
+
+        final StarKey starKey = new StarKey(StarLocation.WILDERNESS_RUNITE_MINE, 301);
+        final Instant detectedAt = Instant.now();
+        final User detectedBy = new RunescapeUser("Jannyboy11");
+        final CrashedStar crashedStar = new CrashedStar(starKey, StarTier.SIZE_9, detectedAt, detectedBy);
+        final GroupKey a = new GroupKey("a"), b = new GroupKey("b"), c = new GroupKey("c");
+
+        final Set<GroupKey> groups = setOf(a, b, c);
+        final Set<CrashedStar> clientKnownStars = setOf(crashedStar);
+
+        starDatabase.add(groups, crashedStar);
+        final StarList result = starDatabase.calculateDiff(groups, clientKnownStars);
+
+        assertTrue(result.getFreshStars().isEmpty());
+        assertTrue(result.getStarUpdates().isEmpty());
+        assertTrue(result.getDeletedStars().isEmpty());
     }
 
 }
