@@ -6,9 +6,10 @@ A plugin for crowdsourcing shooting stars in F2P.
 
 - Sidebar panel with list of known stars.
     - Double-click a star entry to hop to the world of a star.
-    - Right-click to remove entries.
-- Analyzes chat messages for star calls.
+    - Right-click menu to copy to clipboard or remove from list.
+- Analyses chat messages for star calls.
 - Arrow hint for a star found in your world.
+- Tile markers for double hopping locations.
 - Optional: Communication with a webserver to share your stars with others.
 
 ### Group communication settings
