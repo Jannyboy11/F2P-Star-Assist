@@ -20,6 +20,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.WorldUtil;
 import okhttp3.Call;
@@ -52,9 +53,11 @@ public class StarAssistPlugin extends Plugin {
 	@Inject private WorldService worldService;
 	@Inject private ClientThread clientThread;
 	@Inject private StarAssistConfig config;
+	@Inject private OverlayManager overlayManager;
 
 	//populated on start-up
 	private StarClient starClient;
+	private DoubleHoppingTilesOverlay doubleHoppingTilesOverlay;
 	private ScheduledExecutorService fetcherTimer;
 	private StarAssistPanel panel;
 	private NavigationButton navButton;
@@ -93,6 +96,9 @@ public class StarAssistPlugin extends Plugin {
 	@Override
 	protected void startUp() throws Exception {
 		this.starClient = injector.getInstance(StarClient.class);
+		this.doubleHoppingTilesOverlay= injector.getInstance(DoubleHoppingTilesOverlay.class);
+		overlayManager.add(doubleHoppingTilesOverlay);
+
 		this.panel = new StarAssistPanel(this, config, clientThread);
 		BufferedImage icon = ImageUtil.loadImageResource(StarAssistPlugin.class, "/icon.png");
 		this.navButton = NavigationButton.builder()
@@ -118,7 +124,9 @@ public class StarAssistPlugin extends Plugin {
 
 	@Override
 	protected void shutDown() throws Exception {
+		overlayManager.remove(doubleHoppingTilesOverlay);
 		clientToolbar.removeNavigation(navButton);
+
 		fetcherTimer.shutdownNow();
 		fetcherTimer = null;
 
