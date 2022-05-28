@@ -113,4 +113,6 @@ public class StarDatabaseUpdateTest {
         assertTrue(result.getDeletedStars().isEmpty());
     }
 
+    //TODO more tests for calculateDiff?
+
 }
