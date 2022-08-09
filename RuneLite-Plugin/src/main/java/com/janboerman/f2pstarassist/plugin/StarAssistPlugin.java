@@ -329,6 +329,7 @@ public class StarAssistPlugin extends Plugin {
 		}
 
 		//apply 'delete' updates
+		//TODO sometimes we get 'deleted' stars from the webserver for stars that are actually still present in the world.
 		for (StarKey deletedStar : deleted) {
 			reportStarGone(deletedStar, false);
 		}
