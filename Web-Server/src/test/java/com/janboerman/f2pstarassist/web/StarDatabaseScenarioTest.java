@@ -24,7 +24,7 @@ public class StarDatabaseScenarioTest {
     public void testScenario0() {
         final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
 
-        final CrashedStar crashedStar = new CrashedStar(StarTier.SIZE_1, StarLocation.DUEL_ARENA, 565, Instant.now(), new RunescapeUser("a"));
+        final CrashedStar crashedStar = new CrashedStar(StarTier.SIZE_1, StarLocation.PVP_ARENA, 565, Instant.now(), new RunescapeUser("a"));
         final GroupKey groupA = new GroupKey("A");
 
         starDatabase.add(Set.of(groupA), crashedStar);
