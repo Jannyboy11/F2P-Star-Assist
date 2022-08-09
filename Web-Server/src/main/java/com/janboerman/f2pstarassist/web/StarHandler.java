@@ -92,6 +92,7 @@ class StarHandler extends AbstractHandler {
 
                         //calculation
                         StarList diff = starDatabase.calculateDiff(groupKeys, knownStars);
+                        //TODO sometimes the client gets 'deleted' stars from the webserver for stars that are actually still present in the world.
 
                         //response
                         response.setStatus(HttpServletResponse.SC_OK);
