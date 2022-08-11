@@ -11,7 +11,6 @@ import com.janboerman.f2pstarassist.common.StarTier;
 import com.janboerman.f2pstarassist.common.StarUpdate;
 import com.janboerman.f2pstarassist.common.User;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +31,10 @@ public class StarDatabase {
             .build();
     private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
     private final StarListener starListener;
+
+    private final Cache<StarKey, Instant> deletedStars = CacheBuilder.newBuilder()
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .build();
 
     public StarDatabase(StarListener listener) {
         this.starListener = Objects.requireNonNull(listener);
@@ -187,6 +190,7 @@ public class StarDatabase {
         if (starCache == null) return false;
         boolean removed = starCache.remove(starKey) != null;
         if (removed) {
+            //remove from owning groups (and also remove the owning group itself if it no longer owns any stars)
             Set<GroupKey> groups = owningGroups.get(starKey);
             if (groups != null) {
                 groups.remove(groupKey);
@@ -194,6 +198,9 @@ public class StarDatabase {
                     owningGroups.remove(starKey);
                 }
             }
+
+            //add to deleted stars
+            deletedStars.put(starKey, Instant.now());
         }
         return removed;
         //don't notify starListener here because we're already using the RemovalListener.
@@ -256,10 +263,9 @@ public class StarDatabase {
         }
 
         //calculate deletes
-        Set<StarKey> serverStarKeys = serverStars.stream().map(CrashedStar::getKey).collect(Collectors.toSet());
-        for (CrashedStar clientStar : clientKnownStars) {
+        for (CrashedStar clientStar: clientKnownStars) {
             StarKey clientStarKey = clientStar.getKey();
-            if (!serverStarKeys.contains(clientStarKey)) {
+            if (deletedStars.getIfPresent(clientStarKey) != null) {
                 deleted.add(clientStarKey);
             }
         }
