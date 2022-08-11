@@ -6,7 +6,7 @@
 
     <groupId>com.janboerman.f2p-star-assist</groupId>
     <artifactId>F2P-Star-Assist</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <packaging>pom</packaging>
 
     <modules>
