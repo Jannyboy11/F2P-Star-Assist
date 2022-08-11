@@ -72,6 +72,8 @@ public class StarDatabase {
         StarKey starKey = crashedStar.getKey();
         Set<GroupKey> owningGroups = this.owningGroups.get(starKey);
 
+        deletedStars.invalidate(starKey);
+
         if (owningGroups == null) {
             //star didn't have an owner yet.
             this.owningGroups.put(starKey, new LinkedHashSet<>(groupKeys)); //defensive copy
@@ -119,6 +121,8 @@ public class StarDatabase {
 
         StarKey starKey = starUpdate.getKey();
         StarTier newTier = starUpdate.getTier();
+
+        deletedStars.invalidate(starKey);
 
         CrashedStar existingStar = get(groupKey, starKey);
 
