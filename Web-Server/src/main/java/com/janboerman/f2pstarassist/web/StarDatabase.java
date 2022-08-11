@@ -13,6 +13,7 @@ import com.janboerman.f2pstarassist.common.User;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -237,7 +239,7 @@ public class StarDatabase {
         Set<StarUpdate> updates = new HashSet<>();
         Set<StarKey> deleted = new HashSet<>();
 
-        Map<StarKey, StarTier> clientStarTiers = clientKnownStars.stream().collect(Collectors.toMap(CrashedStar::getKey, CrashedStar::getTier));
+        Map<StarKey, StarTier> clientStarTiers = clientKnownStars.stream().collect(Collectors.toMap(CrashedStar::getKey, CrashedStar::getTier, BinaryOperator.minBy(Comparator.naturalOrder())));
         Map<GroupKey, Set<CrashedStar>> starsForGroups = forGroups.stream().collect(Collectors.toMap(Function.identity(), this::getStars));
 
         //get calculate fresh stars per group set
@@ -255,7 +257,7 @@ public class StarDatabase {
         Set<CrashedStar> serverStars = getStars(forGroups);
         for (CrashedStar serverStar : serverStars) {
             StarKey key = serverStar.getKey();
-            if (clientKnownStars.contains(serverStar)) {
+            if (clientStarTiers.keySet().contains(key)) {
                 if (serverStar.getTier().compareTo(clientStarTiers.get(key)) < 0) {
                     updates.add(new StarUpdate(key, serverStar.getTier()));
                 }

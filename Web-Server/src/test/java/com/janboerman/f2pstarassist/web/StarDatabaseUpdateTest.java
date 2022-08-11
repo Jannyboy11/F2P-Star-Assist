@@ -113,6 +113,43 @@ public class StarDatabaseUpdateTest {
         assertTrue(result.getDeletedStars().isEmpty());
     }
 
-    //TODO more tests for calculateDiff?
+    @Test
+    public void testDiffNewUpdatedDeleted() {
+        final StarDatabase starDatabase = new StarDatabase(NoOpStarListener.INSTANCE);
+
+        final StarKey starKey1 = new StarKey(StarLocation.PVP_ARENA, 551);                      //not known by the server
+        final StarKey starKey2 = new StarKey(StarLocation.DRAYNOR_VILLAGE_BANK, 510);           //maintained by the server
+        final StarKey starKey3 = new StarKey(StarLocation.CORSAIR_COVE_RESOURCE_AREA, 316);     //updated on the server
+        final StarKey starKey4 = new StarKey(StarLocation.DWARVEN_MINE, 576);                   //deleted from the server
+        final StarKey starKey5 = new StarKey(StarLocation.MINING_GUILD, 382);                   //not known by the client
+
+        final CrashedStar crashedStar1 = new CrashedStar(starKey1, StarTier.SIZE_3, Instant.now(), User.unknown());
+        final CrashedStar crashedStar2 = new CrashedStar(starKey2, StarTier.SIZE_6, Instant.now(), User.unknown());
+        final CrashedStar crashedStar3 = new CrashedStar(starKey3, StarTier.SIZE_8, Instant.now(), User.unknown());
+        final CrashedStar crashedStar4 = new CrashedStar(starKey4, StarTier.SIZE_1, Instant.now(), User.unknown());
+        final CrashedStar crashedStar5 = new CrashedStar(starKey5, StarTier.SIZE_9, Instant.now(), User.unknown());
+
+        final GroupKey groupA = new GroupKey("a");
+        final Set<GroupKey> groups = Set.of(groupA);
+
+        starDatabase.add(groups, crashedStar2.clone());
+        starDatabase.add(groups, crashedStar3.clone());
+        starDatabase.add(groups, crashedStar4.clone());
+        starDatabase.add(groups, crashedStar5.clone());
+
+        starDatabase.update(groupA, new StarUpdate(starKey3, StarTier.SIZE_7));
+        starDatabase.remove(groupA, starKey4);
+
+        StarList starList = starDatabase.calculateDiff(groups, Set.of(crashedStar1.clone(), crashedStar2.clone(), crashedStar3.clone(), crashedStar4.clone()));
+
+        var freshStars = starList.getFreshStars();
+        assertEquals(Map.of(Set.of(crashedStar5), groups), freshStars);
+
+        var starUpdates = starList.getStarUpdates();
+        assertEquals(Set.of(new StarUpdate(starKey3, StarTier.SIZE_7)), starUpdates);
+
+        var deletedStars = starList.getDeletedStars();
+        assertEquals(Set.of(starKey4), deletedStars);
+    }
 
 }
