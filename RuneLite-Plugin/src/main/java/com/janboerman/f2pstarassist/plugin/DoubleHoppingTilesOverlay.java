@@ -28,6 +28,7 @@ public class DoubleHoppingTilesOverlay extends Overlay {
             new DoubleHoppingTile("Desert mine / PvP Arena hopping location", new WorldPoint(3323, 3289, 0)),
             new DoubleHoppingTile("Varrock west bank hopping location", new WorldPoint(3264, 3384, 0)),
             new DoubleHoppingTile("Varrock south east mine hopping location", new WorldPoint(3264, 3383, 0)),
+            //maybe: new DoubleHoppingTile("Lumbridge Swamp East / Al Kharid Bank", new WorldPoint(3253, 3159, 0)),
     };
 
     private static final int MAX_DRAW_DISTANCE = 32;

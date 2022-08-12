@@ -79,8 +79,6 @@ public class StarAssistPanel extends PluginPanel {
         } else {
             this.starList.addAll(starList);
             this.starList.sort(compareByLocation(playerLocation).thenComparing(Comparator.comparing(CrashedStar::getTier).reversed()));
-            //TODO sort stars that can't be mined last?
-            //TODO compare by world ping afterwards?
 
             //re-paint
             for (CrashedStar star : this.starList) {
@@ -159,7 +157,10 @@ public class StarAssistPanel extends PluginPanel {
                 public void actionPerformed(ActionEvent e) {
                     starList.remove(star);
                     clientThread.invoke(() -> {
-                        plugin.removeStar(star.getKey());       //remove from local cache
+                        //remove from local cache
+                        plugin.removeStar(star.getKey());
+
+                        //re-paint panel
                         WorldPoint playerLocation = plugin.getLocalPlayerLocation();
                         SwingUtilities.invokeLater(() -> setStars(new ArrayList<>(starList), playerLocation));
                     });

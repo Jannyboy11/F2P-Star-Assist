@@ -577,6 +577,11 @@ public class StarAssistPlugin extends Plugin {
 				reportStarUpdate(starKey, upToDateTier, true);
 			}
 		}
+
+		//show hint arrow
+		if (config.hintArrowEnabled() && !client.hasHintArrow()) {
+			client.setHintArrow(worldPoint);
+		}
 	}
 
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
