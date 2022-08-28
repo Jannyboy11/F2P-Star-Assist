@@ -11,6 +11,8 @@ public interface StarListener {
     public void onRemove(GroupKey group, StarKey star);
 
     public default StarListener concat(StarListener other) {
+        if (this == NoOpStarListener.INSTANCE) return other;
+        if (other == NoOpStarListener.INSTANCE) return this;
         return new ConcatStarListener(this, other);
     }
 
