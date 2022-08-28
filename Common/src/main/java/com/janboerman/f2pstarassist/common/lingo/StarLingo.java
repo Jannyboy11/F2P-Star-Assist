@@ -102,13 +102,13 @@ public class StarLingo {
             return StarLocation.VARROCK_AUBURY;
 
         //al kharid, pvp arena
+        if (containsAllIgnoreCase(text, "desert", "mine") || containsIgnoreCase(text, "akm"))
+            return StarLocation.AL_KHARID_MINE;
         if (containsAllIgnoreCase(text, "al", "kharid") || containsAnyIgnoreCase(text, "alk", "ally", "ak"))
             if (containsIgnoreCase(text, "bank"))
                 return StarLocation.AL_KHARID_BANK;
             else if (containsIgnoreCase(text, "mine"))
                 return StarLocation.AL_KHARID_MINE;
-        if (containsAllIgnoreCase(text, "desert", "mine"))
-            return StarLocation.AL_KHARID_MINE;
         if (containsAnyIgnoreCase(text, "duel", "da", "arena", "pvp", "pa"))
             return StarLocation.PVP_ARENA;
 
