@@ -3,6 +3,7 @@ package com.janboerman.f2pstarassist.common;
 import java.util.Objects;
 import java.util.Set;
 
+@Deprecated
 public class StarPacket {
 
     private final Set<GroupKey> groups;

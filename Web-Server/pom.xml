@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>Web-Server</artifactId>
+    <artifactId>Web-Server-Legacy</artifactId>
 
     <properties>
         <jetty.version>11.0.9</jetty.version>

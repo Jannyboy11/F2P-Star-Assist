@@ -10,6 +10,8 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.util.logging.Logger;
 
+/** @deprecated will be replaced by spring-boot server. */
+@Deprecated
 public class StarServer {
 
     private final Configuration config;

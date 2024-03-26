@@ -2,6 +2,7 @@ package com.janboerman.f2pstarassist.common;
 
 import java.util.Objects;
 
+@Deprecated
 public final class GroupKey {
 
     private String key;

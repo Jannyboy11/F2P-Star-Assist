@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+@Deprecated
 //what the server responds with when the client sends a StarRequest
 public final class StarList {
 

@@ -12,7 +12,7 @@
     <artifactId>RuneLite-Plugin</artifactId>
 
     <properties>
-        <runelite.version>1.10.17.1</runelite.version>
+        <runelite.version>1.10.25.2</runelite.version>
         <lombok.version>1.18.30</lombok.version>
         <junit.version>5.10.1</junit.version>
     </properties>
