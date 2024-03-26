@@ -21,7 +21,7 @@ val CommonProject = "Common";
         os.proc("git", "commit", "-m", "\"Generate F2P-Star-Assist project compatible with plugin hub\"").call(gradleProjectDir)
         os.proc("git", "branch", "-M", "master").call(gradleProjectDir)
         os.proc("git", "remote", "add", "f2p-star-assist", "git@github.com:Jannyboy11/F2P-Star-Assist-PluginHub.git").call(gradleProjectDir)
-        os.proc("git", "push", "--set-upstream", "f2p-star-assist", "master", "--force").call(gradleProjectDir)
+        os.proc("git", "push", "--set-upstream", "f2p-star-assist", "master", "--force-with-lease").call(gradleProjectDir)
     case None =>
 }
 
