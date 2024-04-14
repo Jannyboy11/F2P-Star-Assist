@@ -1,6 +1,5 @@
 package com.janboerman.f2pstarassist.plugin;
 
-import com.google.gson.*;
 import com.google.inject.Provides;
 import com.janboerman.f2pstarassist.common.*;
 
@@ -22,10 +21,8 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.WorldUtil;
-import net.runelite.http.api.worlds.WorldResult;
 import okhttp3.Call;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import okio.Buffer;
 
 import java.awt.image.BufferedImage;
@@ -34,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.*;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -56,7 +52,7 @@ public class StarAssistPlugin extends Plugin {
 	@Inject private OverlayManager overlayManager;
 
 	//populated on start-up
-	private NewStarClient starClient;
+	private StarClient starClient;
 	private DoubleHoppingTilesOverlay doubleHoppingTilesOverlay;
 	private ScheduledExecutorService fetcherTimer;
 	private StarAssistPanel panel;
@@ -90,7 +86,7 @@ public class StarAssistPlugin extends Plugin {
 
 	@Override
 	protected void startUp() throws Exception {
-		this.starClient = injector.getInstance(NewStarClient.class);
+		this.starClient = injector.getInstance(StarClient.class);
 		this.doubleHoppingTilesOverlay= injector.getInstance(DoubleHoppingTilesOverlay.class);
 		overlayManager.add(doubleHoppingTilesOverlay);
 
@@ -222,6 +218,8 @@ public class StarAssistPlugin extends Plugin {
 
 
 	public void reportStarNew(CrashedStar star, StarSource methodFound) {
+		// TODO check whether the star is ackshually in a f2p world.
+
 		log.debug("reporting new star: " + star);
 
 		final boolean isNew = starCache.add(star) == null;

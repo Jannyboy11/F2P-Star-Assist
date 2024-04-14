@@ -25,7 +25,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-public class NewStarClient {
+public class StarClient {
 
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(CrashedStar.class, new CrashedStarAdapater())
@@ -36,7 +36,7 @@ public class NewStarClient {
     private final OkHttpClient httpClient;
 
     @Inject
-    public NewStarClient(StarAssistConfig config, OkHttpClient httpClient) {
+    public StarClient(StarAssistConfig config, OkHttpClient httpClient) {
         this.config = config;
         this.httpClient = httpClient;
     }
@@ -101,6 +101,7 @@ public class NewStarClient {
         return future;
     }
 
+    // TODO if our player is a ranked member in F2P StarHunt fc, then show this option in the sidebar panel.
     public CompletableFuture<Void> callStar(long id) {
         String url = config.httpUrl() + "/stars/" + id + "/publish";
 
