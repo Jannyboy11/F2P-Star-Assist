@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public final class DiscordUser implements User {
 
-    private final String name; //display name
-    //possibly: private final String tag;
+    /** Display name used by the user in the guild where the bot is living. */
+    private final String name;
 
     public DiscordUser(String name) {
         this.name = name;

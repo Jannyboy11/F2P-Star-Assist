@@ -2,7 +2,8 @@ package com.janboerman.f2pstarassist.common.util;
 
 import java.util.*;
 
-public class CollectionConvert {
+@Deprecated //TODO still need this?
+public final class CollectionConvert {
 
     private CollectionConvert() {
     }

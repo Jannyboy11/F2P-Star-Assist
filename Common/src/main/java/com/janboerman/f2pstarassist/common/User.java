@@ -3,15 +3,20 @@ package com.janboerman.f2pstarassist.common;
 public interface User /*permits RunescapeUser, DiscordUser, UnknownUser*/ {
 
     public static User unknown() {
-        return UnknownUser.INSTANCE;
+        return Unknown.INSTANCE;
     }
-}
 
-class UnknownUser implements User {
+    public static class Unknown implements User {
 
-    static final UnknownUser INSTANCE = new UnknownUser();
+        private static final Unknown INSTANCE = new Unknown();
 
-    private UnknownUser() {
+        private Unknown() {
+        }
+
+        @Override
+        public String toString() {
+            return "Anonymous user";
+        }
     }
 
 }

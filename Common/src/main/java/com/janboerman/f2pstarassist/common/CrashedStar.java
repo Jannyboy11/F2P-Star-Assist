@@ -4,49 +4,65 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
 
-public final class CrashedStar implements Comparable<CrashedStar>, Payload, Cloneable {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
 
     private static final Comparator<CrashedStar> COMPARATOR = Comparator
             .comparing(CrashedStar::getTier)
             .thenComparing(CrashedStar::getWorld)
             .thenComparing(CrashedStar::getLocation);
 
-    private final StarLocation location;
-    private final int world;
-    private StarTier tier;
+    @Nullable private Long databaseId;
 
-    private final Instant detectedAt;
-    private final User discoveredBy;
+    @Nonnull private final StarLocation location;
+    @Nonnull private final int world;
+    @Nonnull private StarTier tier;
+
+    @Nonnull private final Instant detectedAt;
+    @Nonnull private final User discoveredBy;
 
     public CrashedStar(StarTier tier, StarLocation location, int world, Instant detectedAt, User discoveredBy) {
         Objects.requireNonNull(tier,"tier cannot be null");
         Objects.requireNonNull(location, "location cannot be null");
         Objects.requireNonNull(detectedAt, "detection timestamp cannot be null");
+        Objects.requireNonNull(discoveredBy, "discoveredBy user cannot be null");
 
         this.tier = tier;
         this.location = location;
         this.world = world;
         this.detectedAt = detectedAt;
-        this.discoveredBy = discoveredBy;   //differentiate between a Discord user and a RuneScape user?
-        //number of miners?
+        this.discoveredBy = discoveredBy;
     }
 
     public CrashedStar(StarKey key, StarTier tier, Instant detectedAt, User discoveredBy) {
         this(tier, key.getLocation(), key.getWorld(), detectedAt, discoveredBy);
     }
 
+    //TODO why do we need this again?
     @Override
     public CrashedStar clone() {
         return new CrashedStar(tier, location, world, detectedAt, discoveredBy);
     }
 
+    //TODO does this still need to be synchronised?
     public synchronized StarTier getTier() {
         return tier;
     }
 
+    //TODO does this still need to be synchronised?
     public synchronized void setTier(StarTier lowerTier) {
         assert lowerTier != null : "tier cannot be null";
         tier = lowerTier;
+    }
+
+    public Long getId() {
+        return databaseId;
+    }
+
+    public boolean hasId() {
+        return databaseId == null || databaseId.longValue() == 0L;
     }
 
     public StarLocation getLocation() {
@@ -67,6 +83,12 @@ public final class CrashedStar implements Comparable<CrashedStar>, Payload, Clon
 
     public StarKey getKey() {
         return new StarKey(getLocation(), getWorld());
+    }
+
+    public void setId(long databaseId) {
+        assert databaseId != 0L;
+
+        this.databaseId = databaseId;
     }
 
     @Override
@@ -93,7 +115,8 @@ public final class CrashedStar implements Comparable<CrashedStar>, Payload, Clon
     @Override
     public String toString() {
         return "CrashedStar"
-                + "{tier=" + getTier()
+                + "{databaseId=" + getId()
+                + ",tier=" + getTier()
                 + ",location=" + getLocation()
                 + ",world=" + getWorld()
                 + ",detected at=" + getDetectedAt()

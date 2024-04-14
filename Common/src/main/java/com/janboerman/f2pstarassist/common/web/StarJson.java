@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Deprecated // TODO can we use a gson type adapter?
 public class StarJson {
 
     private StarJson() {

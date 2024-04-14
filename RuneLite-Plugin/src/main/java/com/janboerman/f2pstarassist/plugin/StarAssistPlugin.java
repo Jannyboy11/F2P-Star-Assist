@@ -114,11 +114,12 @@ public class StarAssistPlugin extends Plugin {
 		setGroups(loadGroups());
 
 		fetcherTimer = Executors.newSingleThreadScheduledExecutor();
-		fetcherTimer.scheduleAtFixedRate(() -> {
-			clientThread.invoke(() -> fetchStarList(toSet(groups.values())));
-		}, 0, 15, TimeUnit.MINUTES);
 
-		clientThread.invoke(() -> updatePanel());
+		fetcherTimer.scheduleAtFixedRate(() -> {
+			clientThread.invoke(this::fetchStarList);
+		}, 0, 5, TimeUnit.MINUTES);
+
+		clientThread.invoke(this::updatePanel);
 
 		log.info("F2P Star Assist started!");
 	}
@@ -138,7 +139,7 @@ public class StarAssistPlugin extends Plugin {
 		log.info("F2P Star Assist stopped!");
 	}
 
-	public void fetchStarList(Set<GroupKey> sharingGroups) {
+	public void fetchStarList() {
 		if (config.httpConnectionEnabled()) {
 
 			CompletableFuture<StarList> starFuture = starClient.requestStars(sharingGroups, starCache.getStars());

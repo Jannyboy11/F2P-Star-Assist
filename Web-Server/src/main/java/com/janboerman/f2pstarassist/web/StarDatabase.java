@@ -3,12 +3,9 @@ package com.janboerman.f2pstarassist.web;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.janboerman.f2pstarassist.common.CrashedStar;
-import com.janboerman.f2pstarassist.common.GroupKey;
 import com.janboerman.f2pstarassist.common.StarCache;
 import com.janboerman.f2pstarassist.common.StarKey;
-import com.janboerman.f2pstarassist.common.StarList;
 import com.janboerman.f2pstarassist.common.StarTier;
-import com.janboerman.f2pstarassist.common.StarUpdate;
 import com.janboerman.f2pstarassist.common.User;
 
 import java.time.Instant;

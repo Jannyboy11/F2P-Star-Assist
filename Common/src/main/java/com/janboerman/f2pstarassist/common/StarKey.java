@@ -3,7 +3,7 @@ package com.janboerman.f2pstarassist.common;
 import java.util.Comparator;
 import java.util.Objects;
 
-public final class StarKey implements Comparable<StarKey>, Payload {
+public final class StarKey implements Comparable<StarKey> {
 
     private static final Comparator<StarKey> COMPARATOR = Comparator
             .comparing(StarKey::getLocation)
