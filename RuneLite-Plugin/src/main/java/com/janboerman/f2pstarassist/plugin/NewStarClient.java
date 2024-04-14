@@ -81,16 +81,18 @@ public class NewStarClient {
         return future;
     }
 
-    public CompletableFuture<Void> depleteStar(StarKey key) {
-        return deleteStar(key, "deplete");
+    private static String deletionMethodSuffix(DeletionMethod method) {
+        switch (method) {
+            case DEPLETED:
+                return "/deplete";
+            case DISINTEGRATED:
+                return "/poof";
+        }
+        throw new RuntimeException("Cannot occur");
     }
 
-    public CompletableFuture<Void> poofStar(StarKey key) {
-        return deleteStar(key, "poof");
-    }
-
-    private CompletableFuture<Void> deleteStar(StarKey key, String depleteOrPoof) {
-        String url = config.httpUrl() + "/stars/" + key.getWorld() + "/" + key.getLocation() + "/" + depleteOrPoof;
+    public CompletableFuture<Void> deleteStar(StarKey key, DeletionMethod depleteOrPoof) {
+        String url = config.httpUrl() + "/stars/" + key.getWorld() + "/" + key.getLocation() + deletionMethodSuffix(depleteOrPoof);
 
         Request request = new Request.Builder().url(url).delete().build();
 

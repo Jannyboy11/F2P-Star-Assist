@@ -6,10 +6,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class StarCache {
 
@@ -38,9 +40,9 @@ public class StarCache {
         StarKey key = newStar.getKey();
         CrashedStar oldStar = cache.getIfPresent(key);
         if (oldStar != null) {
-            if (newStar.getTier().getSize() > oldStar.getTier().getSize()) {
-                cache.put(key, newStar);
-            } //else: old star had a higher tier already
+            if (newStar.getTier().compareTo(oldStar.getTier()) < 0) {
+                oldStar.setTier(newStar.getTier());
+            }
         } else {
             cache.put(key, newStar);
         }
@@ -51,7 +53,12 @@ public class StarCache {
     public boolean addAll(Collection<CrashedStar> stars) {
         boolean result = false;
         for (CrashedStar star : stars) {
-            result |= (add(star) == null);
+            assert star != null;
+            CrashedStar oldStar = add(star);
+            if (oldStar != null) {
+                oldStar.setId(star.getId());
+            }
+            result |= (oldStar == null);
         }
         return result;
     }
@@ -66,9 +73,17 @@ public class StarCache {
         }
     }
 
-    //returns the old star
-    public CrashedStar forceAdd(CrashedStar star) {
-        return cache.asMap().put(star.getKey(), star);
+    public void receiveStars(List<CrashedStar> starList) {
+        // All existing stars which have a database id but are not in the new list are to be removed.
+        Set<StarKey> newStars = starList.stream().map(CrashedStar::getKey).collect(Collectors.toSet());
+        for (CrashedStar existing : getStars()) {
+            StarKey key = existing.getKey();
+            if (existing.hasId() && !newStars.contains(key)) {
+                remove(key);
+            }
+        }
+
+        addAll(starList);
     }
 
     //returns the old star

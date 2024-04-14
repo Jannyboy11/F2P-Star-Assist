@@ -210,81 +210,38 @@ public class StarAssistPlugin extends Plugin {
 	// ======= Star Cache Bookkeeping =======
 	//
 
-	private boolean shouldBroadcastStar(StarKey starKey) {
-		if (!config.httpConnectionEnabled()) return false;
-
-		WorldResult worldResult = worldService.getWorlds();	//worldResult can be null when RuneLite's WorldService breaks after a game update
-		boolean isPvP = worldResult != null && worldResult.findWorld(starKey.getWorld()).getTypes().contains(net.runelite.http.api.worlds.WorldType.PVP);
-		boolean isWilderness = starKey.getLocation().isInWilderness();
-		return (config.sharePvpWorldStars() || !isPvP) && (config.shareWildernessStars() || !isWilderness);
-	}
-
-	public void receiveStars(StarList starList) {
-		Map<Set<CrashedStar>, Set<GroupKey>> fresh = starList.getFreshStars();
-		Set<StarUpdate> updates = starList.getStarUpdates();
-		Set<StarKey> deleted = starList.getDeletedStars();
-
-		//apply 'new' updates
-		for (Map.Entry<Set<CrashedStar>, Set<GroupKey>> entry : fresh.entrySet()) {
-			Set<CrashedStar> freshStars = entry.getKey();
-			Set<GroupKey> ownedBy = entry.getValue();
-			starCache.addAll(freshStars);
-			for (CrashedStar freshStar : freshStars) {
-				owningGroups.computeIfAbsent(freshStar.getKey(), k -> new HashSet<>()).addAll(ownedBy);
-			}
-		}
-
-		//apply 'update' updates
-		for (StarUpdate starUpdate : updates) {
-			StarKey starKey = starUpdate.getKey();
-			CrashedStar star = starCache.get(starKey);
-			if (star == null)
-				//shouldn't really happen, but just in case.
-				starCache.add(new CrashedStar(starKey, starUpdate.getTier(), Instant.now(), User.unknown()));
-			else if (starUpdate.getTier().compareTo(star.getTier()) < 0)
-				star.setTier(starUpdate.getTier());
-		}
-
-		//apply 'delete' updates
-		for (StarKey deletedStar : deleted) {
-			reportStarGone(deletedStar, false);
-		}
+	public void receiveStars(List<CrashedStar> starList) {
+		starCache.receiveStars(starList);
 
 		updatePanel();
 	}
 
+	private boolean shouldBroadcast(StarSource methodFound) {
+		return config.httpConnectionEnabled() && methodFound == StarSource.FOUND_IN_GAME;
+	}
 
-	public void reportStarNew(CrashedStar star, Set<GroupKey> groupsToShareTheStarWith) {
+
+	public void reportStarNew(CrashedStar star, StarSource methodFound) {
 		log.debug("reporting new star: " + star);
 
-		final StarKey starKey = star.getKey();
 		final boolean isNew = starCache.add(star) == null;
 		if (isNew) {
 			updatePanel();
-			owningGroups.put(starKey, groupsToShareTheStarWith);
 		}
 
-		if (config.shareFoundStars() && shouldBroadcastStar(starKey)) {
-			CompletableFuture<Optional<CrashedStar>> upToDateStar = starClient.sendStar(groupsToShareTheStarWith, star);
-			upToDateStar.whenCompleteAsync((optionalStar, ex) -> {
+		if (shouldBroadcast(methodFound)) {
+			CompletableFuture<Long> upToDateStar = starClient.postStar(star);
+			upToDateStar.whenCompleteAsync((databaseId, ex) -> {
 				if (ex != null) {
 					logServerError(ex);
-				} else if (optionalStar.isPresent()) {
-					CrashedStar receivedStar = optionalStar.get();
-					StarKey receivedStarKey = receivedStar.getKey();
-					clientThread.invoke(() -> {
-						CrashedStar existingStar = starCache.get(receivedStarKey);
-						if (existingStar == null) { //this could theoretically happen if the client received a 'delete' from the server.
-							starCache.forceAdd(receivedStar);
-						}
-						updatePanel();
-					});
+				} else if (databaseId != null) {
+					clientThread.invoke(() -> star.setId(databaseId.longValue()));
 				}
 			});
 		}
 	}
 
-	public void reportStarUpdate(StarKey starKey, StarTier newTier, boolean broadcast) {
+	public void reportStarUpdate(StarKey starKey, StarTier newTier, StarSource methodFound) {
 		log.debug("reporting star update: " + starKey + "->" + newTier);
 
 		CrashedStar star = starCache.get(starKey);
@@ -293,28 +250,23 @@ public class StarAssistPlugin extends Plugin {
 		star.setTier(newTier);
 		updatePanel();
 
-		if (broadcast && shouldBroadcastStar(starKey)) {
-			Set<GroupKey> shareGroups = getOwningGroups(starKey);
-			CompletableFuture<CrashedStar> upToDateStar = starClient.updateStar(shareGroups, starKey, newTier);
+		if (shouldBroadcast(methodFound)) {
+			CompletableFuture<Void> upToDateStar = starClient.updateStarTier(starKey, newTier);
 			upToDateStar.whenCompleteAsync((receivedStar, ex) -> {
 				if (ex != null) {
 					logServerError(ex);
-				}
-				else if (!receivedStar.equals(star)) {
-					clientThread.invoke(() -> { starCache.forceAdd(receivedStar); updatePanel(); });
 				}
 			});
 		}
 	}
 
-	public void reportStarGone(StarKey starKey, boolean broadcast) {
+	public void reportStarGone(StarKey starKey, DeletionMethod deletionMethod, StarSource methodFound) {
 		log.debug("reporting star gone: " + starKey);
 
-		Set<GroupKey> broadcastGroups = removeStar(starKey);
 		updatePanel();
 
-		if (broadcast && shouldBroadcastStar(starKey) && broadcastGroups != null) {
-			CompletableFuture<Void> deleteAction = starClient.deleteStar(broadcastGroups, starKey);
+		if (shouldBroadcast(methodFound)) {
+			CompletableFuture<Void> deleteAction = starClient.deleteStar(starKey, deletionMethod);
 			deleteAction.whenComplete((Void v, Throwable ex) -> {
 				if (ex != null) {
 					logServerError(ex);
@@ -326,12 +278,10 @@ public class StarAssistPlugin extends Plugin {
 		}
 	}
 
-	@Nullable
-	Set<GroupKey> removeStar(StarKey starKey) {
+	void removeStar(StarKey starKey) {
 		assert client.isClientThread();
 
 		starCache.remove(starKey);
-		return owningGroups.remove(starKey);
 	}
 
 	private void logServerError(Throwable ex) {
@@ -413,15 +363,7 @@ public class StarAssistPlugin extends Plugin {
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event) {
 		if ("F2P Star Assist".equals(event.getGroup())) {
-			if ("groups".equals(event.getKey())) {
-				try {
-					setGroups(loadGroups(event.getNewValue()));
-				} catch (RuntimeException e) {
-					log.error("Invalid groups JSON in config", e);
-				}
-			}
-
-			else if ("hint enabled".equals(event.getKey())) {
+			if ("hint enabled".equals(event.getKey())) {
 				showHintArrow(Boolean.parseBoolean(event.getNewValue()));
 			}
 		}
@@ -439,6 +381,14 @@ public class StarAssistPlugin extends Plugin {
 		showHintArrow(config.hintArrowEnabled());
 	}
 
+	private static DeletionMethod deletionMethod(StarTier tier, float health) {
+		if (tier == StarTier.SIZE_1 && health < 0.1F) {
+			return DeletionMethod.DEPLETED;
+		} else {
+			return DeletionMethod.DISINTEGRATED;
+		}
+	}
+
 	@Subscribe
 	public void onGameTick(GameTick event) {
 		for (CrashedStar star : starCache.getStars()) {
@@ -449,12 +399,13 @@ public class StarAssistPlugin extends Plugin {
 					Tile tile = client.getScene().getTiles()[starPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
 
 					StarTier starTier = getStar(tile);
+					float health = Float.NaN; //TODO
 					if (starTier == null) {
 						//a star that was in the cache is no longer there.
 						clientThread.invokeLater(() -> {
 							if (getStar(tile) == null) {
 								//if in the next tick there is still no star, report it as gone.
-								reportStarGone(star.getKey(), true);
+								reportStarGone(star.getKey(), deletionMethod(star.getTier(), health), StarSource.FOUND_IN_GAME);
 								if (starPoint.equals(client.getHintArrowPoint())) {
 									client.clearHintArrow();
 								}
@@ -491,12 +442,12 @@ public class StarAssistPlugin extends Plugin {
 		if (knownStar == null) {
 			//we found a new star
 			CrashedStar newStar = new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName()));
-			reportStarNew(newStar, getSharingGroupsOwnFoundStars());
+			reportStarNew(newStar, StarSource.FOUND_IN_GAME);
 		} else {
 			//the star already exists.
 			StarTier upToDateTier = StarIds.getTier(gameObject.getId());
 			if (upToDateTier != null) {
-				reportStarUpdate(starKey, upToDateTier, true);
+				reportStarUpdate(starKey, upToDateTier, StarSource.FOUND_IN_GAME);
 			}
 		}
 
@@ -531,7 +482,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
-						reportStarNew(star, getSharingGroupsFriendsChat());
+						reportStarNew(star, StarSource.FRIENDS_CHAT);
 					}
 				}
 				break;
@@ -542,7 +493,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
-						reportStarNew(star, getSharingGroupsClanChat());
+						reportStarNew(star, StarSource.CLAN_CHAT);
 					}
 				}
 				break;
@@ -554,7 +505,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
-						reportStarNew(star, getSharingGroupsPrivateChat());
+						reportStarNew(star, StarSource.PRIVATE_CHAT);
 					}
 				}
 				break;
@@ -566,7 +517,7 @@ public class StarAssistPlugin extends Plugin {
 							&& (world = StarLingo.interpretWorld(message)) != -1
 							&& isWorld(world)) {
 						CrashedStar star = new CrashedStar(tier, location, world, Instant.now(), new RunescapeUser(stripChatIcon(event.getName())));
-						reportStarNew(star, getSharingGroupsPublicChat());
+						reportStarNew(star, StarSource.PUBLIC_CHAT);
 					}
 				}
 				break;
