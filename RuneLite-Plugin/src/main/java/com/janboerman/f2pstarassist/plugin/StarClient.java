@@ -2,8 +2,7 @@ package com.janboerman.f2pstarassist.plugin;
 
 import com.google.gson.*;
 import com.janboerman.f2pstarassist.common.*;
-import com.janboerman.f2pstarassist.common.web.EndPoints;
-import com.janboerman.f2pstarassist.common.web.StarJson;
+
 import okhttp3.*;
 
 import javax.inject.Inject;
@@ -14,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+@Deprecated(forRemoval = true) //TODO remove this :-)
 public class StarClient {
 
     private static final MediaType APPLICATION_JSON = MediaType.get("application/json");

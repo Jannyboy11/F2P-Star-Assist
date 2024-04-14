@@ -5,7 +5,6 @@ import com.google.inject.Provides;
 import com.janboerman.f2pstarassist.common.*;
 
 import com.janboerman.f2pstarassist.common.lingo.StarLingo;
-import static com.janboerman.f2pstarassist.common.util.CollectionConvert.toSet;
 import static com.janboerman.f2pstarassist.plugin.TextUtil.stripChatIcon;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
@@ -25,6 +24,8 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.WorldUtil;
 import net.runelite.http.api.worlds.WorldResult;
 import okhttp3.Call;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import okio.Buffer;
 
 import java.awt.image.BufferedImage;
@@ -45,8 +46,6 @@ public class StarAssistPlugin extends Plugin {
 
 	//populated at construction
 	private final StarCache starCache;
-	private final Map<StarKey, Set<GroupKey>> owningGroups = new HashMap<>();
-	private final Map<String, GroupKey> groups = new HashMap<>();
 
 	//populated right after construction
 	@Inject private Client client;
@@ -57,7 +56,7 @@ public class StarAssistPlugin extends Plugin {
 	@Inject private OverlayManager overlayManager;
 
 	//populated on start-up
-	private StarClient starClient;
+	private NewStarClient starClient;
 	private DoubleHoppingTilesOverlay doubleHoppingTilesOverlay;
 	private ScheduledExecutorService fetcherTimer;
 	private StarAssistPanel panel;
@@ -80,11 +79,6 @@ public class StarAssistPlugin extends Plugin {
 						client.clearHintArrow();
 					}
 				}
-
-				//clear owning groups
-				if (removalNotification.wasEvicted()) {
-					owningGroups.remove(removedStar.getKey());
-				}
 			});
 		});
 	}
@@ -96,7 +90,7 @@ public class StarAssistPlugin extends Plugin {
 
 	@Override
 	protected void startUp() throws Exception {
-		this.starClient = injector.getInstance(StarClient.class);
+		this.starClient = injector.getInstance(NewStarClient.class);
 		this.doubleHoppingTilesOverlay= injector.getInstance(DoubleHoppingTilesOverlay.class);
 		overlayManager.add(doubleHoppingTilesOverlay);
 
@@ -110,8 +104,6 @@ public class StarAssistPlugin extends Plugin {
 				.build();
 
 		clientToolbar.addNavigation(navButton);
-
-		setGroups(loadGroups());
 
 		fetcherTimer = Executors.newSingleThreadScheduledExecutor();
 
@@ -133,16 +125,15 @@ public class StarAssistPlugin extends Plugin {
 		fetcherTimer = null;
 
 		starCache.clear();
-		owningGroups.clear();
-		groups.clear();
 
 		log.info("F2P Star Assist stopped!");
 	}
 
+	// TODO do we want this method in this class?
 	public void fetchStarList() {
 		if (config.httpConnectionEnabled()) {
 
-			CompletableFuture<StarList> starFuture = starClient.requestStars(sharingGroups, starCache.getStars());
+			CompletableFuture<List<CrashedStar>> starFuture = starClient.requestStars();
 			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
@@ -185,6 +176,7 @@ public class StarAssistPlugin extends Plugin {
 		assert client.isClientThread();
 
 		int playerWorld = client.getWorld();
+		// TODO: optimise StarCache, store only by world?
 		for (CrashedStar star : starCache.getStars()) {
 			if (star.getWorld() == playerWorld) {
 				WorldPoint starPoint = StarPoints.fromLocation(star.getLocation());
@@ -212,82 +204,6 @@ public class StarAssistPlugin extends Plugin {
 		rsWorld.setTypes(WorldUtil.toWorldTypes(world.getTypes()));
 
 		return rsWorld;
-	}
-
-	private Set<GroupKey> getOwningGroups(StarKey starKey) {
-		Set<GroupKey> groups = owningGroups.get(starKey);
-		if (groups == null) groups = Collections.emptySet();
-		return groups;
-	}
-
-	private Map<String, GroupKey> getGroups() {
-		return groups;
-	}
-
-	private void setGroups(Map<String, GroupKey> groups) {
-		this.groups.clear();
-		this.groups.putAll(groups);
-	}
-
-	private Map<String, GroupKey> loadGroups() {
-		return loadGroups(config.groups());
-	}
-
-	private Map<String, GroupKey> loadGroups(String groupsJson) {
-		JsonParser jsonParser = new JsonParser();
-		try {
-			JsonElement jsonElement = jsonParser.parse(groupsJson);
-			if (jsonElement instanceof JsonObject) {
-				JsonObject jsonObject = (JsonObject) jsonElement;
-
-				Map<String, GroupKey> result = new HashMap<>();
-				for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-					String groupName = entry.getKey();
-					JsonElement groupKeyString = entry.getValue();
-					GroupKey groupKey = new GroupKey(groupKeyString.getAsString());
-					result.put(groupName, groupKey);
-				}
-
-				return result;
-			} else {
-				log.error("groups must be defined as a json object!");
-				return Collections.emptyMap();
-			}
-		} catch (RuntimeException e) {
-			log.error("Invalid groups JSON in config", e);
-			return Collections.emptyMap();
-		}
-	}
-
-	private Set<GroupKey> getSharingGroups(String groupName) {
-		if (groupName == null || groupName.isEmpty()) return Collections.emptySet();
-		return Arrays.stream(groupName.split(";"))
-				.flatMap(name -> {
-					GroupKey key = getGroups().get(name);
-					if (key == null) return Stream.empty();
-					else return Stream.of(key);
-				})
-				.collect(Collectors.toSet());
-	}
-
-	private Set<GroupKey> getSharingGroupsOwnFoundStars() {
-		return getSharingGroups(config.getGroupsToShareFoundStarsWith());
-	}
-
-	private Set<GroupKey> getSharingGroupsFriendsChat() {
-		return getSharingGroups(config.shareCallsReceivedByFriendsChat());
-	}
-
-	private Set<GroupKey> getSharingGroupsClanChat() {
-		return getSharingGroups(config.shareCallsReceivedByClanChat());
-	}
-
-	private Set<GroupKey> getSharingGroupsPrivateChat() {
-		return getSharingGroups(config.shareCallsReceivedByPrivateChat());
-	}
-
-	private Set<GroupKey> getSharingGroupsPublicChat() {
-		return getSharingGroups(config.shareCallsReceivedByPublicChat());
 	}
 
 	//
@@ -425,8 +341,13 @@ public class StarAssistPlugin extends Plugin {
 			log.debug("Request that caused it: " + call.request());
 			Buffer buffer = new Buffer();
 			try {
-				call.request().body().writeTo(buffer);
-				log.debug("Request body: " + buffer.readString(StandardCharsets.UTF_8));
+				RequestBody body = call.request().body();
+				if (body != null) {
+					body.writeTo(buffer);
+					log.debug("Request body: " + buffer.readString(StandardCharsets.UTF_8));
+				} else {
+					log.debug("Request body: <empty>");
+				}
 			} catch (IOException e) {
 				log.error("Error reading call request body", e);
 			}

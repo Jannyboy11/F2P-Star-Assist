@@ -57,7 +57,7 @@ public class StarLingo {
      * @param text the input
      * @return the star's location, or null if the location couldn't be recognised
      */
-    //TODO return a Set<StarLocation> instead? then it's possible to return multiple locations if it's ambiguous (e.g. just 'Crandor')
+    // TODO check new abbreviations from dust.wiki
     public static StarLocation interpretLocation(String text) {
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven", "ice"))

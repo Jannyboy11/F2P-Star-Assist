@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- @Deprecated(forRemoval = true) -->
     <artifactId>Web-Server-Legacy</artifactId>
 
     <properties>

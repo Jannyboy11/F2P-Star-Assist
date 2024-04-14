@@ -5,6 +5,8 @@ import com.janboerman.f2pstarassist.common.StarTier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 public class InterpretationsTest {
 
@@ -72,11 +74,10 @@ public class InterpretationsTest {
     }
 
     // sanity-check toString
-    @Test
-    public void testToStringRoundTrip() {
-        for (StarLocation location : StarLocation.values()) {
-            assertEquals(location, StarLingo.interpretLocation(location.toString()));
-        }
+    @ParameterizedTest
+    @EnumSource(StarLocation.class)
+    public void testToStringRoundTrip(StarLocation location) {
+        assertEquals(location, StarLingo.interpretLocation(location.toString()));
     }
 
 }
