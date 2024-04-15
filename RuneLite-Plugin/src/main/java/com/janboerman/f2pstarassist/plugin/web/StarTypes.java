@@ -1,10 +1,10 @@
-package com.janboerman.f2pstarassist.common.web;
+package com.janboerman.f2pstarassist.plugin.web;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import com.janboerman.f2pstarassist.common.CrashedStar;
+import com.janboerman.f2pstarassist.plugin.model.CrashedStar;
 
 public final class StarTypes {
 

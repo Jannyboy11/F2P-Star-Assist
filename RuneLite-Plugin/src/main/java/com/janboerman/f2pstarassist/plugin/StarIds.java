@@ -1,6 +1,6 @@
 package com.janboerman.f2pstarassist.plugin;
 
-import com.janboerman.f2pstarassist.common.StarTier;
+import com.janboerman.f2pstarassist.plugin.model.StarTier;
 
 import net.runelite.api.NullNpcID;
 import net.runelite.api.ObjectID;

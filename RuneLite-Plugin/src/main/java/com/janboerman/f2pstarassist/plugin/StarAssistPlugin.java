@@ -1,8 +1,17 @@
 package com.janboerman.f2pstarassist.plugin;
 
 import com.google.inject.Provides;
-import com.janboerman.f2pstarassist.common.*;
-import com.janboerman.f2pstarassist.common.lingo.StarLingo;
+import com.janboerman.f2pstarassist.plugin.lingo.StarLingo;
+import com.janboerman.f2pstarassist.plugin.model.CrashedStar;
+import com.janboerman.f2pstarassist.plugin.model.DeletionMethod;
+import com.janboerman.f2pstarassist.plugin.model.RunescapeUser;
+import com.janboerman.f2pstarassist.plugin.model.StarKey;
+import com.janboerman.f2pstarassist.plugin.model.StarLocation;
+import com.janboerman.f2pstarassist.plugin.model.StarTier;
+import com.janboerman.f2pstarassist.plugin.ui.DoubleHoppingTilesOverlay;
+import com.janboerman.f2pstarassist.plugin.ui.StarAssistPanel;
+import com.janboerman.f2pstarassist.plugin.web.ResponseException;
+
 import static com.janboerman.f2pstarassist.plugin.TextUtil.stripChatIcon;
 
 import lombok.extern.slf4j.Slf4j;
@@ -269,7 +278,6 @@ public class StarAssistPlugin extends Plugin {
 		log.debug("reporting star gone: " + starKey);
 
 		starCache.remove(starKey);
-
 		updatePanel();
 
 		if (shouldBroadcast(methodFound)) {
@@ -285,7 +293,7 @@ public class StarAssistPlugin extends Plugin {
 		}
 	}
 
-	void removeStar(StarKey starKey) {
+	public void removeStar(StarKey starKey) {
 		assert client.isClientThread();
 
 		starCache.remove(starKey);
@@ -311,7 +319,8 @@ public class StarAssistPlugin extends Plugin {
 		}
 	}
 
-	@Nullable WorldPoint getLocalPlayerLocation() {
+	@Nullable
+	public WorldPoint getLocalPlayerLocation() {
 		assert client.isClientThread() : "getLocalPlayerLocation must be called from the client thread!";
 
 		Player localPlayer = client.getLocalPlayer();

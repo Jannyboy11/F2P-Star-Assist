@@ -1,4 +1,4 @@
-package com.janboerman.f2pstarassist.common.web;
+package com.janboerman.f2pstarassist.plugin.web;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -6,11 +6,11 @@ import java.time.Instant;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.janboerman.f2pstarassist.common.CrashedStar;
-import com.janboerman.f2pstarassist.common.RunescapeUser;
-import com.janboerman.f2pstarassist.common.StarLocation;
-import com.janboerman.f2pstarassist.common.StarTier;
-import com.janboerman.f2pstarassist.common.User;
+import com.janboerman.f2pstarassist.plugin.model.CrashedStar;
+import com.janboerman.f2pstarassist.plugin.model.RunescapeUser;
+import com.janboerman.f2pstarassist.plugin.model.StarLocation;
+import com.janboerman.f2pstarassist.plugin.model.StarTier;
+import com.janboerman.f2pstarassist.plugin.model.User;
 
 public class CrashedStarAdapater extends TypeAdapter<CrashedStar> {
 

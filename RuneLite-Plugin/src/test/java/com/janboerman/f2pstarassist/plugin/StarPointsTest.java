@@ -1,6 +1,6 @@
 package com.janboerman.f2pstarassist.plugin;
 
-import com.janboerman.f2pstarassist.common.StarLocation;
+import com.janboerman.f2pstarassist.plugin.model.StarLocation;
 import static com.janboerman.f2pstarassist.plugin.StarPoints.toLocation;
 import static com.janboerman.f2pstarassist.plugin.StarPoints.fromLocation;
 

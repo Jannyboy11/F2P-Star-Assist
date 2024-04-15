@@ -10,12 +10,13 @@ import javax.inject.Inject;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.janboerman.f2pstarassist.common.CrashedStar;
-import com.janboerman.f2pstarassist.common.DeletionMethod;
-import com.janboerman.f2pstarassist.common.StarKey;
-import com.janboerman.f2pstarassist.common.StarTier;
-import com.janboerman.f2pstarassist.common.web.CrashedStarAdapater;
-import com.janboerman.f2pstarassist.common.web.StarTypes;
+import com.janboerman.f2pstarassist.plugin.model.CrashedStar;
+import com.janboerman.f2pstarassist.plugin.model.DeletionMethod;
+import com.janboerman.f2pstarassist.plugin.model.StarKey;
+import com.janboerman.f2pstarassist.plugin.model.StarTier;
+import com.janboerman.f2pstarassist.plugin.web.CrashedStarAdapater;
+import com.janboerman.f2pstarassist.plugin.web.StarTypes;
+import com.janboerman.f2pstarassist.plugin.web.ResponseException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
