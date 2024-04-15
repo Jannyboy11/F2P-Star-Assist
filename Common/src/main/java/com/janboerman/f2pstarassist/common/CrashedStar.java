@@ -19,7 +19,6 @@ public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
     @Nonnull private final StarLocation location;
     private final int world;
     @Nonnull private StarTier tier;
-    private float health = 1; // 0 < health <= 1 // TODO actually implement this, track this. (see BuyMyAlchs star info plugin as an example.)
 
     @Nonnull private final Instant detectedAt;
     @Nonnull private final User discoveredBy;
@@ -41,14 +40,7 @@ public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
         this(tier, key.getLocation(), key.getWorld(), detectedAt, discoveredBy);
     }
 
-    //TODO why do we need this again? just for testing? then we should remove it.
-    @Override
-    public CrashedStar clone() {
-        return new CrashedStar(tier, location, world, detectedAt, discoveredBy);
-    }
-
-    //TODO does this still need to be synchronised?
-    public synchronized StarTier getTier() {
+    public StarTier getTier() {
         return tier;
     }
 

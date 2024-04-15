@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.janboerman.f2pstarassist.common.CrashedStar;
+import com.janboerman.f2pstarassist.common.DeletionMethod;
 import com.janboerman.f2pstarassist.common.StarKey;
 import com.janboerman.f2pstarassist.common.StarTier;
 import com.janboerman.f2pstarassist.common.web.CrashedStarAdapater;

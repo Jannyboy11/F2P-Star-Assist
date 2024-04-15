@@ -2,6 +2,7 @@ package com.janboerman.f2pstarassist.plugin;
 
 import com.janboerman.f2pstarassist.common.StarTier;
 
+import net.runelite.api.NullNpcID;
 import net.runelite.api.ObjectID;
 
 public final class StarIds {
@@ -15,6 +16,8 @@ public final class StarIds {
     static final int TIER_3 = ObjectID.CRASHED_STAR_41227;  //41227
     static final int TIER_2 = ObjectID.CRASHED_STAR_41228;  //41228
     static final int TIER_1 = ObjectID.CRASHED_STAR_41229;  //41229
+
+    static final int NULL_NPC_ID = NullNpcID.NULL_10629;
 
     //rubble
     static final int FILLER_RUBBLE = 29733; //used in north-west, north-east, south-east corners

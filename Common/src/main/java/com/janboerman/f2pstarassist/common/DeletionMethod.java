@@ -1,4 +1,4 @@
-package com.janboerman.f2pstarassist.plugin;
+package com.janboerman.f2pstarassist.common;
 
 public enum DeletionMethod {
 

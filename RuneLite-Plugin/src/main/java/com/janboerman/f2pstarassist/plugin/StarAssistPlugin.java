@@ -2,10 +2,11 @@ package com.janboerman.f2pstarassist.plugin;
 
 import com.google.inject.Provides;
 import com.janboerman.f2pstarassist.common.*;
-
 import com.janboerman.f2pstarassist.common.lingo.StarLingo;
 import static com.janboerman.f2pstarassist.plugin.TextUtil.stripChatIcon;
+
 import lombok.extern.slf4j.Slf4j;
+
 import net.runelite.api.*;
 import net.runelite.api.coords.*;
 import net.runelite.api.events.*;
@@ -21,6 +22,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.WorldUtil;
+
 import okhttp3.Call;
 import okhttp3.RequestBody;
 import okio.Buffer;
@@ -128,7 +130,6 @@ public class StarAssistPlugin extends Plugin {
 	// TODO do we want this method in this class?
 	public void fetchStarList() {
 		if (config.httpConnectionEnabled()) {
-
 			CompletableFuture<List<CrashedStar>> starFuture = starClient.requestStars();
 			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
@@ -136,9 +137,7 @@ public class StarAssistPlugin extends Plugin {
 				} else {
 					log.debug("received stars from webserver: " + receivedStars);
 
-					clientThread.invoke(() -> {
-						receiveStars(receivedStars);
-					});
+					clientThread.invoke(() -> receiveStars(receivedStars));
 				}
 			});
 		}
@@ -216,9 +215,13 @@ public class StarAssistPlugin extends Plugin {
 		return config.httpConnectionEnabled() && methodFound == StarSource.FOUND_IN_GAME;
 	}
 
-
 	public void reportStarNew(CrashedStar star, StarSource methodFound) {
-		// TODO check whether the star is ackshually in a f2p world.
+		assert client.isClientThread();
+
+		if (!isF2pWorld(star.getWorld())) {
+			log.debug("received non-f2p star: " + star);
+			return;
+		}
 
 		log.debug("reporting new star: " + star);
 
@@ -240,6 +243,8 @@ public class StarAssistPlugin extends Plugin {
 	}
 
 	public void reportStarUpdate(StarKey starKey, StarTier newTier, StarSource methodFound) {
+		assert client.isClientThread();
+
 		log.debug("reporting star update: " + starKey + "->" + newTier);
 
 		CrashedStar star = starCache.get(starKey);
@@ -259,7 +264,11 @@ public class StarAssistPlugin extends Plugin {
 	}
 
 	public void reportStarGone(StarKey starKey, DeletionMethod deletionMethod, StarSource methodFound) {
+		assert client.isClientThread();
+
 		log.debug("reporting star gone: " + starKey);
+
+		starCache.remove(starKey);
 
 		updatePanel();
 
@@ -354,6 +363,30 @@ public class StarAssistPlugin extends Plugin {
 		return null;
 	}
 
+	private boolean isWorld(int world) {
+		net.runelite.http.api.worlds.WorldResult worldResult = worldService.getWorlds();
+		if (worldResult == null) return false;
+		return worldResult.findWorld(world) != null;
+	}
+
+	private boolean isF2pWorld(int world) {
+		net.runelite.http.api.worlds.WorldResult worldResult = worldService.getWorlds();
+		if (worldResult == null) return true; //world-service is broken, assume f2p world.
+		net.runelite.http.api.worlds.World apiWorld = worldResult.findWorld(world);
+		if (apiWorld == null) return false;
+		return !apiWorld.getTypes().contains(net.runelite.http.api.worlds.WorldType.MEMBERS);
+	}
+
+	// TODO how to get the health of the star? look at the star info plugin.
+	private static DeletionMethod deletionMethod(StarTier tier, float health) {
+		if (tier == StarTier.SIZE_1 && health < 0.1F) {
+			return DeletionMethod.DEPLETED;
+		} else {
+			return DeletionMethod.DISINTEGRATED;
+		}
+	}
+
+
 	//
 	// ======= Event Listeners =======
 	//
@@ -377,14 +410,6 @@ public class StarAssistPlugin extends Plugin {
 	@Subscribe
 	public void onWorldChanged(WorldChanged event) {
 		showHintArrow(config.hintArrowEnabled());
-	}
-
-	private static DeletionMethod deletionMethod(StarTier tier, float health) {
-		if (tier == StarTier.SIZE_1 && health < 0.1F) {
-			return DeletionMethod.DEPLETED;
-		} else {
-			return DeletionMethod.DISINTEGRATED;
-		}
 	}
 
 	@Subscribe
@@ -458,11 +483,6 @@ public class StarAssistPlugin extends Plugin {
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
 	// We don't listen on GameObjectDespawned, because onGameTick already handles disintegrated stars.
 
-	private boolean isWorld(int world) {
-		net.runelite.http.api.worlds.WorldResult worldResult = worldService.getWorlds();
-		if (worldResult == null) return false;
-		return worldResult.findWorld(world) != null;
-	}
 
 	@Subscribe
 	public void onChatMessage(ChatMessage event) {
@@ -521,4 +541,81 @@ public class StarAssistPlugin extends Plugin {
 				break;
 		}
 	}
+
+	// TODO Use NPC events to determine the health of the star.
+
+//	@Subscribe
+//	public void onNpcSpawned(NpcSpawned event) {
+//		if (event.getNpc().getId() != StarIds.NULL_NPC_ID) return;
+//
+//		for (Star star : stars)
+//		{
+//			if (star.getWorldPoint().equals(event.getNpc().getWorldLocation()))
+//			{
+//				star.setNpc(event.getNpc());
+//				refresh();
+//				return;
+//			}
+//		}
+//		Star star = new Star(event.getNpc(), client.getWorld());
+//		worldInfo.update(star);
+//		stars.add(0, star);
+//		refresh();
+//	}
+//
+//
+//	@Subscribe
+//	public void onNpcDespawned(NpcDespawned event)
+//	{
+//		if (event.getNpc().getId() != NPC_ID)
+//		{
+//			return;
+//		}
+//		for (Star star : stars)
+//		{
+//			if (star.getWorldPoint().equals(event.getNpc().getWorldLocation()))
+//			{
+//				star.setNpc(null);
+//				refresh();
+//				return;
+//			}
+//		}
+//	}
+//
+//	@Subscribe
+//	public void onGameObjectSpawned(GameObjectSpawned event) {
+//		int tier = Star.getTier(event.getGameObject().getId());
+//		if (tier < 0)
+//		{
+//			return;
+//		}
+//
+//		boolean newStar = false;
+//		Star star = null;
+//		for (Star s : stars)
+//		{
+//			if (s.getWorldPoint().equals(event.getGameObject().getWorldLocation()))
+//			{
+//				s.setObject(event.getGameObject());
+//				s.resetHealth();
+//				star = s;
+//				layerTimer = 0;
+//				despawnQueue.remove(star);
+//				break;
+//			}
+//		}
+//		if (star == null)
+//		{
+//			star = new Star(event.getGameObject(), client.getWorld());
+//			worldInfo.update(star);
+//			stars.add(0, star);
+//			newStar = true;
+//		}
+//
+//		if (newStar && starConfig.addToChat())
+//		{
+//			client.addChatMessage(ChatMessageType.CONSOLE, "", star.getMessage(), "");
+//		}
+//		refresh();
+//	}
 }
