@@ -7,6 +7,8 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.runelite.api.NPC;
+
 public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
 
     private static final Comparator<CrashedStar> COMPARATOR = Comparator
@@ -19,6 +21,9 @@ public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
     @Nonnull private final StarLocation location;
     private final int world;
     @Nonnull private StarTier tier;
+
+    @Nullable private NPC healthNpc; //used for tracking star health
+    private float health = Float.NaN;   // NaN for unknown, otherwise 0 <= health <= 1
 
     @Nonnull private final Instant detectedAt;
     @Nonnull private final User discoveredBy;
@@ -44,8 +49,7 @@ public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
         return tier;
     }
 
-    //TODO does this still need to be synchronised? can't we just always use the client thread?
-    public synchronized void setTier(StarTier lowerTier) {
+    public void setTier(StarTier lowerTier) {
         assert lowerTier != null : "tier cannot be null";
         tier = lowerTier;
     }
@@ -82,6 +86,32 @@ public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
         assert databaseId != null && databaseId.longValue() != 0L;
 
         this.databaseId = databaseId;
+    }
+
+    public void setHealthNpc(@Nullable NPC npc) {
+        this.health = getHealth(); //save health (should npc be null).
+        this.healthNpc = npc;
+    }
+
+    public void setHealth(float health) {
+        assert 0F <= health && health <= 1F;
+
+        this.health = health;
+    }
+
+    /**
+     * Get the health of this star.
+     * @return a value between 0 and 1, or Float.NaN if the health is unknown
+     */
+    public float getHealth() {
+        if (healthNpc == null) {
+            return health;
+        } else if (healthNpc.getHealthRatio() >= 0) {
+            health = (float) healthNpc.getHealthRatio() / (float) healthNpc.getHealthScale();
+        } else if (healthNpc.isDead()) {
+            health = 0F;
+        }
+        return health;
     }
 
     @Override

@@ -431,13 +431,12 @@ public class StarAssistPlugin extends Plugin {
 					Tile tile = client.getScene().getTiles()[starPoint.getPlane()][localPoint.getSceneX()][localPoint.getSceneY()];
 
 					StarTier starTier = getStar(tile);
-					float health = Float.NaN; //TODO
 					if (starTier == null) {
 						//a star that was in the cache is no longer there.
 						clientThread.invokeLater(() -> {
 							if (getStar(tile) == null) {
 								//if in the next tick there is still no star, report it as gone.
-								reportStarGone(star.getKey(), deletionMethod(star.getTier(), health), StarSource.FOUND_IN_GAME);
+								reportStarGone(star.getKey(), deletionMethod(star.getTier(), star.getHealth()), StarSource.FOUND_IN_GAME);
 								if (starPoint.equals(client.getHintArrowPoint())) {
 									client.clearHintArrow();
 								}
@@ -492,6 +491,45 @@ public class StarAssistPlugin extends Plugin {
 	// If stars degrade, they just de-spawn and spawn a new one at a lower tier. The GameObjectChanged event is never called.
 	// We don't listen on GameObjectDespawned, because onGameTick already handles disintegrated stars.
 
+
+	// Use NPC events to determine the health of the star.
+
+	@Subscribe
+	public void onNpcSpawned(NpcSpawned event) {
+		NPC npc = event.getNpc();
+		if (npc.getId() != StarIds.NULL_NPC_ID) return;	// not the star health bar
+
+		WorldPoint worldPoint = npc.getWorldLocation();
+		StarLocation starLocation = StarPoints.toLocation(worldPoint);
+		if (starLocation == null) return; // not a star
+
+		StarKey starKey = new StarKey(starLocation, client.getWorld());
+
+		// Look up the star in the next tick (should the NpcSpawned event be called earlier than GameObjectSpawned event).
+		clientThread.invoke(() -> {
+			CrashedStar star = starCache.get(starKey);
+			if (star == null) return;
+			star.setHealthNpc(npc);
+		});
+	}
+
+	@Subscribe
+	public void onNpcDespawned(NpcDespawned event) {
+		NPC npc = event.getNpc();
+		if (npc.getId() != StarIds.NULL_NPC_ID) return; // not the star health bar
+
+		WorldPoint worldPoint = npc.getWorldLocation();
+		StarLocation starLocation = StarPoints.toLocation(worldPoint);
+		if (starLocation == null) return; //not a star
+
+		StarKey starKey = new StarKey(starLocation, client.getWorld());
+		CrashedStar star = starCache.get(starKey);
+		if (star == null) return;
+
+		star.setHealthNpc(null);
+	}
+
+	// Capture star calls from chat messages.
 
 	@Subscribe
 	public void onChatMessage(ChatMessage event) {
@@ -551,80 +589,4 @@ public class StarAssistPlugin extends Plugin {
 		}
 	}
 
-	// TODO Use NPC events to determine the health of the star.
-
-//	@Subscribe
-//	public void onNpcSpawned(NpcSpawned event) {
-//		if (event.getNpc().getId() != StarIds.NULL_NPC_ID) return;
-//
-//		for (Star star : stars)
-//		{
-//			if (star.getWorldPoint().equals(event.getNpc().getWorldLocation()))
-//			{
-//				star.setNpc(event.getNpc());
-//				refresh();
-//				return;
-//			}
-//		}
-//		Star star = new Star(event.getNpc(), client.getWorld());
-//		worldInfo.update(star);
-//		stars.add(0, star);
-//		refresh();
-//	}
-//
-//
-//	@Subscribe
-//	public void onNpcDespawned(NpcDespawned event)
-//	{
-//		if (event.getNpc().getId() != NPC_ID)
-//		{
-//			return;
-//		}
-//		for (Star star : stars)
-//		{
-//			if (star.getWorldPoint().equals(event.getNpc().getWorldLocation()))
-//			{
-//				star.setNpc(null);
-//				refresh();
-//				return;
-//			}
-//		}
-//	}
-//
-//	@Subscribe
-//	public void onGameObjectSpawned(GameObjectSpawned event) {
-//		int tier = Star.getTier(event.getGameObject().getId());
-//		if (tier < 0)
-//		{
-//			return;
-//		}
-//
-//		boolean newStar = false;
-//		Star star = null;
-//		for (Star s : stars)
-//		{
-//			if (s.getWorldPoint().equals(event.getGameObject().getWorldLocation()))
-//			{
-//				s.setObject(event.getGameObject());
-//				s.resetHealth();
-//				star = s;
-//				layerTimer = 0;
-//				despawnQueue.remove(star);
-//				break;
-//			}
-//		}
-//		if (star == null)
-//		{
-//			star = new Star(event.getGameObject(), client.getWorld());
-//			worldInfo.update(star);
-//			stars.add(0, star);
-//			newStar = true;
-//		}
-//
-//		if (newStar && starConfig.addToChat())
-//		{
-//			client.addChatMessage(ChatMessageType.CONSOLE, "", star.getMessage(), "");
-//		}
-//		refresh();
-//	}
 }
