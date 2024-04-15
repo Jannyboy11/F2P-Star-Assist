@@ -9,6 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- TODO do we still want to have this project? it is kind of obsolete now we haven Trade2000K's bot. -->
+    <!-- @Deprecated -->
     <artifactId>Discord-Bot</artifactId>
 
     <build>

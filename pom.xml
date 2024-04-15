@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>Discord-Bot</module>
+        <module>Discord-Bot</module> <!-- @Deprecated -->
         <module>RuneLite-Plugin</module>
         <module>PluginHub-Project-Generator</module>
     </modules>
