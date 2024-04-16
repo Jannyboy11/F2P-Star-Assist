@@ -44,6 +44,17 @@ public interface StarAssistConfig extends Config {
 		return "http://localhost:8080";
 	}
 
+	@ConfigItem(
+			position = 2,
+			keyName = "friends chat",
+			name = "Friends chat name",
+			description = "Friends chat associated with your f2p starmining group",
+			section = HTTP_SETTINGS_SECTION
+	)
+	default String friendsChat() {
+		return "F2P StarHunt";
+	}
+
 	//																							\\
 	// ======================================================================================== \\
 

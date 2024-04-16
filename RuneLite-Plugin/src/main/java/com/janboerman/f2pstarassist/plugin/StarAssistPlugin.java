@@ -63,6 +63,7 @@ public class StarAssistPlugin extends Plugin {
 	@Inject private OverlayManager overlayManager;
 
 	//populated on start-up
+	private FriendsChatManager friendsChatManager;
 	private StarClient starClient;
 	private DoubleHoppingTilesOverlay doubleHoppingTilesOverlay;
 	private ScheduledExecutorService fetcherTimer;
@@ -97,6 +98,7 @@ public class StarAssistPlugin extends Plugin {
 
 	@Override
 	protected void startUp() throws Exception {
+		this.friendsChatManager = client.getFriendsChatManager();
 		this.starClient = injector.getInstance(StarClient.class);
 		this.doubleHoppingTilesOverlay= injector.getInstance(DoubleHoppingTilesOverlay.class);
 		overlayManager.add(doubleHoppingTilesOverlay);
@@ -208,6 +210,15 @@ public class StarAssistPlugin extends Plugin {
 		rsWorld.setTypes(WorldUtil.toWorldTypes(world.getTypes()));
 
 		return rsWorld;
+	}
+
+	private boolean isRankedMember() {
+		assert client.isClientThread();
+
+		FriendsChatRank rank;
+		return Objects.equals(friendsChatManager.getOwner(), config.friendsChat())
+				&& (rank = friendsChatManager.getMyRank()) != null
+				&& rank != FriendsChatRank.UNRANKED;
 	}
 
 	//

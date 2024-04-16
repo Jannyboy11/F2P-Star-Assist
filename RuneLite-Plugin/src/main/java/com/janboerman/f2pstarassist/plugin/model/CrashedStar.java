@@ -26,7 +26,7 @@ public final class CrashedStar implements Comparable<CrashedStar>, Cloneable {
     private float health = Float.NaN;   // NaN for unknown, otherwise 0 <= health <= 1
 
     @Nonnull private final Instant detectedAt;
-    @Nonnull private final User discoveredBy;
+    @Nonnull private final User discoveredBy;   // TODO simplify this? why not just use a String?
 
     public CrashedStar(StarTier tier, StarLocation location, int world, Instant detectedAt, User discoveredBy) {
         Objects.requireNonNull(tier,"tier cannot be null");
