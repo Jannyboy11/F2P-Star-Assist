@@ -72,32 +72,32 @@ public class StarPoints {
 
     @Nullable
     public static StarLocation toLocation(WorldPoint starPoint) {
-        if (starPoint == WILDERNESS_RUNITE_MINE) return StarLocation.WILDERNESS_RUNITE_MINE;
-        if (starPoint == WILDERNESS_CENTRE_MINE) return StarLocation.WILDERNESS_CENTRE_MINE;
-        if (starPoint == WILDERNESS_SOUTH_WEST_MINE) return StarLocation.WILDERNESS_SOUTH_WEST_MINE;
-        if (starPoint == WILDERNESS_SOUTH_MINE) return StarLocation.WILDERNESS_SOUTH_MINE;
+        if (WILDERNESS_RUNITE_MINE.equals(starPoint)) return StarLocation.WILDERNESS_RUNITE_MINE;
+        if (WILDERNESS_CENTRE_MINE.equals(starPoint)) return StarLocation.WILDERNESS_CENTRE_MINE;
+        if (WILDERNESS_SOUTH_WEST_MINE.equals(starPoint)) return StarLocation.WILDERNESS_SOUTH_WEST_MINE;
+        if (WILDERNESS_SOUTH_MINE.equals(starPoint)) return StarLocation.WILDERNESS_SOUTH_MINE;
 
-        if (starPoint == DWARVEN_MINE) return StarLocation.DWARVEN_MINE;
-        if (starPoint == MINING_GUILD) return StarLocation.MINING_GUILD;
-        if (starPoint == CRAFTING_GUILD) return StarLocation.CRAFTING_GUILD;
-        if (starPoint == RIMMINGTON_MINE) return StarLocation.RIMMINGTON_MINE;
+        if (DWARVEN_MINE.equals(starPoint)) return StarLocation.DWARVEN_MINE;
+        if (MINING_GUILD.equals(starPoint)) return StarLocation.MINING_GUILD;
+        if (CRAFTING_GUILD.equals(starPoint)) return StarLocation.CRAFTING_GUILD;
+        if (RIMMINGTON_MINE.equals(starPoint)) return StarLocation.RIMMINGTON_MINE;
 
-        if (starPoint == DRAYNOR_VILLAGE_BANK) return StarLocation.DRAYNOR_VILLAGE_BANK;
-        if (starPoint == LUMBRIDGE_SWAMP_SOUTH_WEST_MINE) return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
-        if (starPoint == LUMBRIDGE_SWAMP_SOUTH_EAST_MINE) return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
+        if (DRAYNOR_VILLAGE_BANK.equals(starPoint)) return StarLocation.DRAYNOR_VILLAGE_BANK;
+        if (LUMBRIDGE_SWAMP_SOUTH_WEST_MINE.equals(starPoint)) return StarLocation.LUMBRIDGE_SWAMP_SOUTH_WEST_MINE;
+        if (LUMBRIDGE_SWAMP_SOUTH_EAST_MINE.equals(starPoint)) return StarLocation.LUMBRIDGE_SWAMP_SOUTH_EAST_MINE;
 
-        if (starPoint == VARROCK_SOUTH_WEST_MINE) return StarLocation.VARROCK_SOUTH_WEST_MINE;
-        if (starPoint == VARROCK_SOUTH_EAST_MINE) return StarLocation.VARROCK_SOUTH_EAST_MINE;
-        if (starPoint == VARROCK_AUBURY) return StarLocation.VARROCK_AUBURY;
+        if (VARROCK_SOUTH_WEST_MINE.equals(starPoint)) return StarLocation.VARROCK_SOUTH_WEST_MINE;
+        if (VARROCK_SOUTH_EAST_MINE.equals(starPoint)) return StarLocation.VARROCK_SOUTH_EAST_MINE;
+        if (VARROCK_AUBURY.equals(starPoint)) return StarLocation.VARROCK_AUBURY;
 
-        if (starPoint == AL_KHARID_MINE) return StarLocation.AL_KHARID_MINE;
-        if (starPoint == AL_KHARID_BANK) return StarLocation.AL_KHARID_BANK;
-        if (starPoint == PVP_ARENA) return StarLocation.PVP_ARENA;
+        if (AL_KHARID_MINE.equals(starPoint)) return StarLocation.AL_KHARID_MINE;
+        if (AL_KHARID_BANK.equals(starPoint)) return StarLocation.AL_KHARID_BANK;
+        if (PVP_ARENA.equals(starPoint)) return StarLocation.PVP_ARENA;
 
-        if (starPoint == CRANDOR_NORTH_MINE) return StarLocation.CRANDOR_NORTH_MINE;
-        if (starPoint == CRANDOR_SOUTH_MINE) return StarLocation.CRANDOR_SOUTH_MINE;
-        if (starPoint == CORSAIR_COVE_BANK) return StarLocation.CORSAIR_COVE_BANK;
-        if (starPoint == CORSAIR_COVE_RESOURCE_AREA) return StarLocation.CORSAIR_COVE_RESOURCE_AREA;
+        if (CRANDOR_NORTH_MINE.equals(starPoint)) return StarLocation.CRANDOR_NORTH_MINE;
+        if (CRANDOR_SOUTH_MINE.equals(starPoint)) return StarLocation.CRANDOR_SOUTH_MINE;
+        if (CORSAIR_COVE_BANK.equals(starPoint)) return StarLocation.CORSAIR_COVE_BANK;
+        if (CORSAIR_COVE_RESOURCE_AREA.equals(starPoint)) return StarLocation.CORSAIR_COVE_RESOURCE_AREA;
 
         throw new RuntimeException("A new WorldPoint was added which has no registered StarLocation yet: " + starPoint);
     }
