@@ -65,7 +65,6 @@ public class StarAssistPlugin extends Plugin {
 	@Inject private OverlayManager overlayManager;
 
 	//populated on start-up
-	private FriendsChatManager friendsChatManager;
 	private StarClient starClient;
 	private DoubleHoppingTilesOverlay doubleHoppingTilesOverlay;
 	private ScheduledExecutorService fetcherTimer;
@@ -100,7 +99,6 @@ public class StarAssistPlugin extends Plugin {
 
 	@Override
 	protected void startUp() throws Exception {
-		this.friendsChatManager = client.getFriendsChatManager();
 		this.starClient = injector.getInstance(StarClient.class);
 		this.doubleHoppingTilesOverlay= injector.getInstance(DoubleHoppingTilesOverlay.class);
 		overlayManager.add(doubleHoppingTilesOverlay);
@@ -219,7 +217,16 @@ public class StarAssistPlugin extends Plugin {
 		assert client.isClientThread();
 
 		FriendsChatRank rank;
-		return F2P_STARHUNT.equals(friendsChatManager.getOwner())
+		FriendsChatManager friendsChatManager = client.getFriendsChatManager();
+
+		// TODO remove debug
+		System.out.println("DEBUG: friends chat manager: " + friendsChatManager);
+		if (friendsChatManager != null) {
+			System.out.println("DEBUG: friends chat owner: " + friendsChatManager.getOwner());
+			System.out.println("DEBUG: friends chat rank: " + friendsChatManager.getMyRank());
+		}
+
+		return friendsChatManager != null && F2P_STARHUNT.equals(friendsChatManager.getOwner())
 				&& (rank = friendsChatManager.getMyRank()) != null
 				&& rank != FriendsChatRank.UNRANKED;
 	}
