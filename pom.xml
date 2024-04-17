@@ -6,11 +6,10 @@
 
     <groupId>com.janboerman.f2p-star-assist</groupId>
     <artifactId>F2P-Star-Assist</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>Discord-Bot</module> <!-- @Deprecated -->
         <module>RuneLite-Plugin</module>
         <module>PluginHub-Project-Generator</module>
     </modules>
