@@ -51,6 +51,8 @@ import javax.swing.SwingUtilities;
 @PluginDescriptor(name = "F2P Star Assist")
 public class StarAssistPlugin extends Plugin {
 
+	private static final String F2P_STARHUNT = "F2P StarHunt";
+
 	//populated at construction
 	private final StarCache starCache;
 
@@ -103,7 +105,7 @@ public class StarAssistPlugin extends Plugin {
 		this.doubleHoppingTilesOverlay= injector.getInstance(DoubleHoppingTilesOverlay.class);
 		overlayManager.add(doubleHoppingTilesOverlay);
 
-		this.panel = new StarAssistPanel(this, config, client, clientThread);
+		this.panel = new StarAssistPanel(this, clientThread);
 		BufferedImage icon = ImageUtil.loadImageResource(StarAssistPlugin.class, "/icon.png");
 		this.navButton = NavigationButton.builder()
 				.tooltip("F2P Star Assist")
@@ -138,10 +140,12 @@ public class StarAssistPlugin extends Plugin {
 		log.info("F2P Star Assist stopped!");
 	}
 
-	// TODO do we want this method in this class?
+	// TODO do we want this method in this class? I guess so.
 	public void fetchStarList() {
-		if (config.httpConnectionEnabled()) {
-			CompletableFuture<List<CrashedStar>> starFuture = starClient.requestStars();
+		clientThread.invoke(() -> {
+			if (!config.httpConnectionEnabled()) return;
+
+			CompletableFuture<List<CrashedStar>> starFuture = starClient.requestStars(isRankedMember());
 			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
@@ -151,7 +155,7 @@ public class StarAssistPlugin extends Plugin {
 					clientThread.invoke(() -> receiveStars(receivedStars));
 				}
 			});
-		}
+		});
 	}
 
 	public void hopAndHint(CrashedStar star) {
@@ -212,11 +216,11 @@ public class StarAssistPlugin extends Plugin {
 		return rsWorld;
 	}
 
-	private boolean isRankedMember() {
+	public boolean isRankedMember() {
 		assert client.isClientThread();
 
 		FriendsChatRank rank;
-		return Objects.equals(friendsChatManager.getOwner(), config.friendsChat())
+		return F2P_STARHUNT.equals(friendsChatManager.getOwner())
 				&& (rank = friendsChatManager.getMyRank()) != null
 				&& rank != FriendsChatRank.UNRANKED;
 	}
@@ -310,6 +314,14 @@ public class StarAssistPlugin extends Plugin {
 		starCache.remove(starKey);
 	}
 
+	public void publishStar(CrashedStar star) {
+		assert star.hasId();
+
+		log.debug("Publishing star: " + star);
+
+		starClient.callStar(star.getId());
+	}
+
 	private void logServerError(Throwable ex) {
 		log.warn("Unexpected result from web server", ex);
 		if (ex instanceof ResponseException) {
@@ -344,8 +356,9 @@ public class StarAssistPlugin extends Plugin {
 
 		Set<CrashedStar> stars = new HashSet<>(starCache.getStars());
 		WorldPoint playerLocation = getLocalPlayerLocation();
+		boolean ranked = isRankedMember();
 
-		SwingUtilities.invokeLater(() -> panel.setStars(stars, playerLocation));
+		SwingUtilities.invokeLater(() -> panel.setStars(stars, playerLocation, ranked));
 	}
 
 

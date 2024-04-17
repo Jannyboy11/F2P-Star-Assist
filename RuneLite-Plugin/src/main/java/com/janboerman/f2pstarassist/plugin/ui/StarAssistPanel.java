@@ -5,11 +5,9 @@ import com.janboerman.f2pstarassist.plugin.model.CrashedStar;
 import com.janboerman.f2pstarassist.plugin.model.DiscordUser;
 import com.janboerman.f2pstarassist.plugin.model.RunescapeUser;
 import com.janboerman.f2pstarassist.plugin.model.User;
-import com.janboerman.f2pstarassist.plugin.StarAssistConfig;
 import com.janboerman.f2pstarassist.plugin.StarAssistPlugin;
 import com.janboerman.f2pstarassist.plugin.StarPoints;
 
-import net.runelite.api.Client;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.ui.ColorScheme;
@@ -45,15 +43,13 @@ public class StarAssistPanel extends PluginPanel {
     }
 
     private final StarAssistPlugin plugin;
-    private final StarAssistConfig config;
-    private final Client client;
     private final ClientThread clientThread;
     private final List<CrashedStar> starList = new ArrayList<>(2);
 
-    public StarAssistPanel(StarAssistPlugin plugin, StarAssistConfig config, Client client, ClientThread clientThread) {
+    private boolean isRankedPlayer;
+
+    public StarAssistPanel(StarAssistPlugin plugin, ClientThread clientThread) {
         this.plugin = plugin;
-        this.config = config;
-        this.client = client;
         this.clientThread = clientThread;
 
         setLayout(new GridLayout(0, 1));
@@ -73,10 +69,11 @@ public class StarAssistPanel extends PluginPanel {
         }
     }
 
-    public void setStars(Collection<CrashedStar> starList, @Nullable WorldPoint playerLocation) {
+    public void setStars(Collection<CrashedStar> starList, @Nullable WorldPoint playerLocation, boolean isRankedPlayer) {
         this.removeAll();
 
         this.starList.clear();
+        this.isRankedPlayer = isRankedPlayer;
 
         if (starList.isEmpty()) {
             add(NO_STARS_PANEL);
@@ -99,6 +96,7 @@ public class StarAssistPanel extends PluginPanel {
 
         private final JMenuItem removeMenuItem;
         private final JMenuItem copyToClipboardMenuItem;
+        private final JMenuItem publishStarMenuItem;
 
         private final CrashedStar star;
 
@@ -166,11 +164,23 @@ public class StarAssistPanel extends PluginPanel {
 
                         //re-paint panel
                         WorldPoint playerLocation = plugin.getLocalPlayerLocation();
-                        SwingUtilities.invokeLater(() -> setStars(new ArrayList<>(starList), playerLocation));
+                        boolean isRankedPlayer = plugin.isRankedMember();
+                        SwingUtilities.invokeLater(() -> setStars(new ArrayList<>(starList), playerLocation, isRankedPlayer));
                     });
                 }
             });
             popupMenu.add(removeMenuItem);
+            if (star.hasId() && isRankedPlayer) {
+                publishStarMenuItem = new JMenuItem("Publish");
+                publishStarMenuItem.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        plugin.publishStar(star);
+                    }
+                });
+            } else {
+                publishStarMenuItem = null;
+            }
 
             setComponentPopupMenu(popupMenu);
 

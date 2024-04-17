@@ -43,9 +43,12 @@ public class StarClient {
         this.httpClient = httpClient;
     }
 
-    public CompletableFuture<List<CrashedStar>> requestStars() {
+    public CompletableFuture<List<CrashedStar>> requestStars(boolean isRanked) {
 
         String url = config.httpUrl() + "/stars";
+        if (isRanked) {
+            url += "/private";
+        }
         Request request = new Request.Builder().url(url).build();
 
         final CompletableFuture<List<CrashedStar>> future = new CompletableFuture<>();
@@ -103,7 +106,6 @@ public class StarClient {
         return future;
     }
 
-    // TODO if our player is a ranked member in F2P StarHunt fc, then show this option in the sidebar panel.
     public CompletableFuture<Void> callStar(long id) {
         String url = config.httpUrl() + "/stars/" + id + "/publish";
 
