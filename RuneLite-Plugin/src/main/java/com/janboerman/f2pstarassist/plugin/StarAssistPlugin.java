@@ -140,7 +140,6 @@ public class StarAssistPlugin extends Plugin {
 		log.info("F2P Star Assist stopped!");
 	}
 
-	// TODO do we want this method in this class? I guess so.
 	public void fetchStarList() {
 		clientThread.invoke(() -> {
 			if (!config.httpConnectionEnabled()) return;

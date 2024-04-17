@@ -53,8 +53,6 @@ public class StarAssistPanel extends PluginPanel {
         this.clientThread = clientThread;
 
         setLayout(new GridLayout(0, 1));
-
-        //TODO a refresh button?
     }
 
     private static Comparator<CrashedStar> compareByLocation(@Nullable WorldPoint playerLocation) {
@@ -88,6 +86,32 @@ public class StarAssistPanel extends PluginPanel {
             }
         }
 
+        if (isRankedPlayer) {
+            add(Box.createVerticalStrut(2), BorderLayout.SOUTH);
+
+            JButton refreshButton = new JButton("Refresh");
+            refreshButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+            refreshButton.setFont(FontManager.getRunescapeFont());
+            refreshButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    plugin.fetchStarList();
+                }
+            });
+            refreshButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    setBackground(ColorScheme.DARKER_GRAY_COLOR);
+                }
+            });
+            add(refreshButton, BorderLayout.SOUTH);
+        }
+
         revalidate();
         repaint();
     }
@@ -98,12 +122,9 @@ public class StarAssistPanel extends PluginPanel {
         private final JMenuItem copyToClipboardMenuItem;
         private final JMenuItem publishStarMenuItem;
 
-        private final CrashedStar star;
-
         private Color lastBackGround;
 
         StarAssistPanelRow(CrashedStar star) {
-            this.star = star;
             setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
 
             setLayout(new BorderLayout());
@@ -171,7 +192,7 @@ public class StarAssistPanel extends PluginPanel {
             });
             popupMenu.add(removeMenuItem);
             if (star.hasId() && isRankedPlayer) {
-                publishStarMenuItem = new JMenuItem("Publish");
+                publishStarMenuItem = new JMenuItem("Publish"); // TODO icon?
                 publishStarMenuItem.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
