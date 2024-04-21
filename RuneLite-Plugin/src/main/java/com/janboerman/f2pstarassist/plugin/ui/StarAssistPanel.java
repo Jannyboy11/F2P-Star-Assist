@@ -1,6 +1,7 @@
 package com.janboerman.f2pstarassist.plugin.ui;
 
 import com.google.common.html.HtmlEscapers;
+import com.janboerman.f2pstarassist.plugin.StarAssistConfig;
 import com.janboerman.f2pstarassist.plugin.model.CrashedStar;
 import com.janboerman.f2pstarassist.plugin.model.DiscordUser;
 import com.janboerman.f2pstarassist.plugin.model.RunescapeUser;
@@ -8,6 +9,7 @@ import com.janboerman.f2pstarassist.plugin.model.User;
 import com.janboerman.f2pstarassist.plugin.StarAssistPlugin;
 import com.janboerman.f2pstarassist.plugin.StarPoints;
 
+import net.runelite.api.FriendsChatRank;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.ui.ColorScheme;
@@ -46,7 +48,7 @@ public class StarAssistPanel extends PluginPanel {
     private final ClientThread clientThread;
     private final List<CrashedStar> starList = new ArrayList<>(2);
 
-    private boolean isRankedPlayer;
+    private FriendsChatRank f2pStarHuntRank;
 
     public StarAssistPanel(StarAssistPlugin plugin, ClientThread clientThread) {
         this.plugin = plugin;
@@ -67,14 +69,14 @@ public class StarAssistPanel extends PluginPanel {
         }
     }
 
-    public void setStars(Collection<CrashedStar> starList, @Nullable WorldPoint playerLocation, boolean isRankedPlayer) {
+    public void setStars(Collection<CrashedStar> starList, @Nullable WorldPoint playerLocation, FriendsChatRank f2pStarHuntRank, boolean httpEnabled) {
         this.removeAll();
 
         this.starList.clear();
-        this.isRankedPlayer = isRankedPlayer;
+        this.f2pStarHuntRank = f2pStarHuntRank;
 
         if (starList.isEmpty()) {
-            add(NO_STARS_PANEL);
+            add(NO_STARS_PANEL, BorderLayout.SOUTH); // TODO check: is BorderLayout.SOUTH what we want?
         } else {
             this.starList.addAll(starList);
             this.starList.sort(compareByLocation(playerLocation).thenComparing(Comparator.comparing(CrashedStar::getTier).reversed()));
@@ -86,7 +88,8 @@ public class StarAssistPanel extends PluginPanel {
             }
         }
 
-        if (isRankedPlayer) {
+        // TODO: find out why this button does not seem to render.
+        if (StarAssistPlugin.isRanked(f2pStarHuntRank) && httpEnabled) {
             add(Box.createVerticalStrut(2), BorderLayout.SOUTH);
 
             JButton refreshButton = new JButton("Refresh");
@@ -185,13 +188,14 @@ public class StarAssistPanel extends PluginPanel {
 
                         //re-paint panel
                         WorldPoint playerLocation = plugin.getLocalPlayerLocation();
-                        boolean isRankedPlayer = plugin.isRankedMember();
-                        SwingUtilities.invokeLater(() -> setStars(new ArrayList<>(starList), playerLocation, isRankedPlayer));
+                        FriendsChatRank f2pStarHuntRank = plugin.f2pStarHuntRank();
+                        boolean httpEnabled = plugin.httpEnabled();
+                        SwingUtilities.invokeLater(() -> setStars(new ArrayList<>(starList), playerLocation, f2pStarHuntRank, httpEnabled));
                     });
                 }
             });
             popupMenu.add(removeMenuItem);
-            if (star.hasId() && isRankedPlayer) {
+            if (star.hasId() && StarAssistPlugin.isRanked(f2pStarHuntRank)) {
                 publishStarMenuItem = new JMenuItem("Publish"); // TODO icon?
                 publishStarMenuItem.addActionListener(new ActionListener() {
                     @Override

@@ -2,6 +2,8 @@ package com.janboerman.f2pstarassist.generator
 
 import scala.io.Source
 
+// TODO update this. We no longer have the Common module.
+
 val PluginHubProject = "PluginHub-Project"
 val PluginProject = "RuneLite-Plugin"
 val CommonProject = "Common";

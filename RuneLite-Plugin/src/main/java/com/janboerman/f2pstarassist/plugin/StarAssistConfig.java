@@ -45,6 +45,18 @@ public interface StarAssistConfig extends Config {
 		return "http://localhost:8080";
 	}
 
+	@ConfigItem(
+			position = 3,
+			keyName = "include rsn",
+			name = "Include username",
+			description = "When sending new star information, whether to include your RuneScape name as the finder of a star",
+			section = HTTP_SETTINGS_SECTION
+	)
+	default boolean includeRsn() {
+		return false;
+	}
+	// TODO option for setting a user alias?
+
 	//																								  \\
 	// ============================================================================================== \\
 
@@ -54,7 +66,7 @@ public interface StarAssistConfig extends Config {
 	@ConfigSection(
 			name = "Chat Analysis Settings",
 			description = "Settings for whether to interpret star calls from chat messages",
-			position = 3,
+			position = 10,
 			closedByDefault = false
 	)
 	public static final String CHAT_SETTINGS_SECTION = "Chat Settings";
@@ -63,7 +75,7 @@ public interface StarAssistConfig extends Config {
 	//																								  \\
 
 	@ConfigItem(
-			position = 4,
+			position = 11,
 			keyName = "clan chat",
 			name = "Interpret clan chat star calls",
 			description = "Check whether clan chat messages contain star calls",
@@ -74,7 +86,7 @@ public interface StarAssistConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 5,
+			position = 12,
 			keyName = "friends chat",
 			name = "Interpret friends chat star calls",
 			description = "Check whether friends chat messages contain star calls",
@@ -85,7 +97,7 @@ public interface StarAssistConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 6,
+			position = 13,
 			keyName = "private chat",
 			name = "Interpret private chat star calls",
 			description = "Check whether private chat messages contain star calls",
@@ -96,7 +108,7 @@ public interface StarAssistConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 7,
+			position = 14,
 			keyName = "public chat",
 			name = "Interpret public chat star calls",
 			description = "Check whether public chat messages contain star calls",
@@ -116,7 +128,7 @@ public interface StarAssistConfig extends Config {
 	@ConfigSection(
 			name = "Miscellaneous Settings",
 			description = "Settings that don't belong in any other category",
-			position = 8,
+			position = 20,
 			closedByDefault = false
 	)
 	public static final String MISCELLANEOUS = "Miscellaneous Settings";
@@ -125,7 +137,7 @@ public interface StarAssistConfig extends Config {
 	//																								  \\
 
 	@ConfigItem(
-			position = 9,
+			position = 21,
 			keyName = "hint enabled",
 			name = "Enable arrow hints",
 			description = "Whether to display an arrow that hints to the target location",
@@ -136,7 +148,7 @@ public interface StarAssistConfig extends Config {
 	}
 
 	@ConfigItem(
-			position = 10,
+			position = 22,
 			keyName = "double hopping locations",
 			name = "Mark double hopping location tiles",
 			description = "Enable tile markers for double hopping locations.<br>" +

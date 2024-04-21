@@ -18,6 +18,7 @@ import com.janboerman.f2pstarassist.plugin.web.CrashedStarAdapater;
 import com.janboerman.f2pstarassist.plugin.web.StarTypes;
 import com.janboerman.f2pstarassist.plugin.web.ResponseException;
 
+import net.runelite.api.FriendsChatRank;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -34,6 +35,8 @@ public class StarClient {
             .create();
     private static final MediaType APPLICATION_JSON = MediaType.get("application/json");
 
+    private static final String RANK_HEADER = "F2P-StarHunt-Rank";
+
     private final StarAssistConfig config;
     private final OkHttpClient httpClient;
 
@@ -43,13 +46,14 @@ public class StarClient {
         this.httpClient = httpClient;
     }
 
-    public CompletableFuture<List<CrashedStar>> requestStars(boolean isRanked) {
+    public CompletableFuture<List<CrashedStar>> requestStars(FriendsChatRank rank) {
 
         String url = config.httpUrl() + "/stars";
-        if (isRanked) {
-            url += "/private";
+        Request.Builder requestBuilder = new Request.Builder().url(url);
+        if (StarAssistPlugin.isRanked(rank)) {
+            requestBuilder.header(RANK_HEADER, rank.name());
         }
-        Request request = new Request.Builder().url(url).build();
+        Request request = requestBuilder.build();
 
         final CompletableFuture<List<CrashedStar>> future = new CompletableFuture<>();
         sendRequest(future, request, responseBody -> {

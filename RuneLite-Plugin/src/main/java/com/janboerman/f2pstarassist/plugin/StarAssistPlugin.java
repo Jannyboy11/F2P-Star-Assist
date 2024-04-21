@@ -8,6 +8,7 @@ import com.janboerman.f2pstarassist.plugin.model.RunescapeUser;
 import com.janboerman.f2pstarassist.plugin.model.StarKey;
 import com.janboerman.f2pstarassist.plugin.model.StarLocation;
 import com.janboerman.f2pstarassist.plugin.model.StarTier;
+import com.janboerman.f2pstarassist.plugin.model.User;
 import com.janboerman.f2pstarassist.plugin.ui.DoubleHoppingTilesOverlay;
 import com.janboerman.f2pstarassist.plugin.ui.StarAssistPanel;
 import com.janboerman.f2pstarassist.plugin.web.ResponseException;
@@ -51,7 +52,7 @@ import javax.swing.SwingUtilities;
 @PluginDescriptor(name = "F2P Star Assist")
 public class StarAssistPlugin extends Plugin {
 
-	private static final String F2P_STARHUNT = "F2P StarHunt";
+	private static final String F2P_STARHUNT = "F2p Starhunt";
 
 	//populated at construction
 	private final StarCache starCache;
@@ -140,9 +141,9 @@ public class StarAssistPlugin extends Plugin {
 
 	public void fetchStarList() {
 		clientThread.invoke(() -> {
-			if (!config.httpConnectionEnabled()) return;
+			if (!httpEnabled()) return;
 
-			CompletableFuture<List<CrashedStar>> starFuture = starClient.requestStars(isRankedMember());
+			CompletableFuture<List<CrashedStar>> starFuture = starClient.requestStars(f2pStarHuntRank());
 			starFuture.whenCompleteAsync((receivedStars, ex) -> {
 				if (ex != null) {
 					log.error("Error when receiving star data", ex);
@@ -213,22 +214,24 @@ public class StarAssistPlugin extends Plugin {
 		return rsWorld;
 	}
 
-	public boolean isRankedMember() {
+	public @Nullable FriendsChatRank f2pStarHuntRank() {
 		assert client.isClientThread();
 
-		FriendsChatRank rank;
 		FriendsChatManager friendsChatManager = client.getFriendsChatManager();
 
-		// TODO remove debug
-		System.out.println("DEBUG: friends chat manager: " + friendsChatManager);
-		if (friendsChatManager != null) {
-			System.out.println("DEBUG: friends chat owner: " + friendsChatManager.getOwner());
-			System.out.println("DEBUG: friends chat rank: " + friendsChatManager.getMyRank());
+		if (friendsChatManager != null && F2P_STARHUNT.equalsIgnoreCase(friendsChatManager.getOwner())) {
+			return friendsChatManager.getMyRank();
+		} else {
+			return null;
 		}
+	}
 
-		return friendsChatManager != null && F2P_STARHUNT.equals(friendsChatManager.getOwner())
-				&& (rank = friendsChatManager.getMyRank()) != null
-				&& rank != FriendsChatRank.UNRANKED;
+	public static boolean isRanked(FriendsChatRank rank) {
+		return rank != null && rank != FriendsChatRank.UNRANKED;
+	}
+
+	public boolean httpEnabled() {
+		return config.httpConnectionEnabled();
 	}
 
 	//
@@ -242,7 +245,7 @@ public class StarAssistPlugin extends Plugin {
 	}
 
 	private boolean shouldBroadcast(StarSource methodFound) {
-		return config.httpConnectionEnabled() && methodFound == StarSource.FOUND_IN_GAME;
+		return httpEnabled() && methodFound == StarSource.FOUND_IN_GAME;
 	}
 
 	public void reportStarNew(CrashedStar star, StarSource methodFound) {
@@ -362,9 +365,10 @@ public class StarAssistPlugin extends Plugin {
 
 		Set<CrashedStar> stars = new HashSet<>(starCache.getStars());
 		WorldPoint playerLocation = getLocalPlayerLocation();
-		boolean ranked = isRankedMember();
+		FriendsChatRank fcRank = f2pStarHuntRank();
+		boolean httpEnabled = httpEnabled();
 
-		SwingUtilities.invokeLater(() -> panel.setStars(stars, playerLocation, ranked));
+		SwingUtilities.invokeLater(() -> panel.setStars(stars, playerLocation, fcRank, httpEnabled));
 	}
 
 
@@ -416,7 +420,6 @@ public class StarAssistPlugin extends Plugin {
 		return !apiWorld.getTypes().contains(net.runelite.http.api.worlds.WorldType.MEMBERS);
 	}
 
-	// TODO how to get the health of the star? look at the star info plugin.
 	private static DeletionMethod deletionMethod(StarTier tier, float health) {
 		if (tier == StarTier.SIZE_1 && health < 0.1F) {
 			return DeletionMethod.DEPLETED;
@@ -502,7 +505,8 @@ public class StarAssistPlugin extends Plugin {
 		CrashedStar knownStar = starCache.get(starKey);
 		if (knownStar == null) {
 			//we found a new star
-			CrashedStar newStar = new CrashedStar(starKey, starTier, Instant.now(), new RunescapeUser(client.getLocalPlayer().getName()));
+			User finder = config.includeRsn() ? new RunescapeUser(client.getLocalPlayer().getName()) : User.unknown();
+			CrashedStar newStar = new CrashedStar(starKey, starTier, Instant.now(), finder);
 			reportStarNew(newStar, StarSource.FOUND_IN_GAME);
 		} else {
 			//the star already exists.
