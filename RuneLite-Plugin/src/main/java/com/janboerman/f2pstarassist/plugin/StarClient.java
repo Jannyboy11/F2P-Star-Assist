@@ -135,18 +135,23 @@ public class StarClient {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    callback.completeExceptionally(new ResponseException(call, "WebServer answered with response code: " + response.code()));
-                    return;
-                }
+                try {
+                    if (!response.isSuccessful()) {
+                        callback.completeExceptionally(new ResponseException(call,
+                                "WebServer answered with response code: " + response.code()));
+                        return;
+                    }
 
-                if (bodyMapper == null) {
-                    callback.complete(null);
-                } else {
-                    ResponseBody body = response.body();
-                    assert body != null;
+                    if (bodyMapper == null) {
+                        callback.complete(null);
+                    } else {
+                        ResponseBody body = response.body();
+                        assert body != null;
 
-                    callback.complete(bodyMapper.apply(body));
+                        callback.complete(bodyMapper.apply(body));
+                    }
+                } finally {
+                    response.close();
                 }
             }
         });

@@ -52,7 +52,8 @@ import javax.swing.SwingUtilities;
 @PluginDescriptor(name = "F2P Star Assist")
 public class StarAssistPlugin extends Plugin {
 
-	private static final String F2P_STARHUNT = "F2p Starhunt";
+	// Note: Jagex apparently uses the byte sequence [-62 -96] instead of [32] for a whitespace!
+	private static final String F2P_STARHUNT = new String(new byte[] { 70, 50, 112, -62, -96, 83, 116, 97, 114, 104, 117, 110, 116 }, StandardCharsets.UTF_8);
 
 	//populated at construction
 	private final StarCache starCache;
@@ -218,8 +219,7 @@ public class StarAssistPlugin extends Plugin {
 		assert client.isClientThread();
 
 		FriendsChatManager friendsChatManager = client.getFriendsChatManager();
-
-		if (friendsChatManager != null && F2P_STARHUNT.equalsIgnoreCase(friendsChatManager.getOwner())) {
+		if (friendsChatManager != null && F2P_STARHUNT.equals(friendsChatManager.getOwner())) {
 			return friendsChatManager.getMyRank();
 		} else {
 			return null;
@@ -446,6 +446,7 @@ public class StarAssistPlugin extends Plugin {
 	public void onGameStateChanged(GameStateChanged event) {
 		if (event.getGameState() == GameState.LOGGED_IN) {
 			showHintArrow(config.hintArrowEnabled());
+			updatePanel();
 		}
 	}
 

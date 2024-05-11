@@ -88,7 +88,6 @@ public class StarAssistPanel extends PluginPanel {
             }
         }
 
-        // TODO: find out why this button does not seem to render.
         if (StarAssistPlugin.isRanked(f2pStarHuntRank) && httpEnabled) {
             add(Box.createVerticalStrut(2), BorderLayout.SOUTH);
 

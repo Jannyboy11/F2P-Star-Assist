@@ -6,6 +6,7 @@ import com.janboerman.f2pstarassist.plugin.model.StarKey;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -76,16 +77,24 @@ public class StarCache {
     }
 
     public void receiveStars(List<CrashedStar> starList) {
+        List<CrashedStar> theNewList = new ArrayList<>(starList);
+
         // All existing stars which have a database id but are not in the new list are to be removed.
         Set<StarKey> newStars = starList.stream().map(CrashedStar::getKey).collect(Collectors.toSet());
         for (CrashedStar existing : getStars()) {
             StarKey key = existing.getKey();
-            if (existing.hasId() && !newStars.contains(key)) {
-                remove(key);
+            if (existing.hasId()) {
+                if (!newStars.contains(key)) {
+                    remove(key);
+                }
+            } else {
+                // The existing star has no database id.
+                // Keep stars which were not synced with server anyway.
+                theNewList.add(existing);
             }
         }
 
-        addAll(starList);
+        addAll(theNewList);
     }
 
     //returns the old star
