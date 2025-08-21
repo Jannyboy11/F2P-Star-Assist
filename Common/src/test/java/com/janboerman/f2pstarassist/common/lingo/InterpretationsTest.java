@@ -71,6 +71,24 @@ public class InterpretationsTest {
         assertEquals(425, StarLingo.interpretWorld(text));
     }
 
+    @Test
+    public void testSouthCitharedeAbbey() {
+        String text = "T9 sca w302";
+
+        assertEquals(StarLocation.SOUTH_CITHAREDE_ABBEY, StarLingo.interpretLocation(text));
+        assertEquals(StarTier.SIZE_9, StarLingo.interpretTier(text));
+        assertEquals(302, StarLingo.interpretWorld(text));
+    }
+
+    @Test
+    public void testSouthCrandor() {
+        String text = "T4 sc w401";
+
+        assertEquals(StarLocation.CRANDOR_SOUTH_MINE, StarLingo.interpretLocation(text));
+        assertEquals(StarTier.SIZE_4, StarLingo.interpretTier(text));
+        assertEquals(401, StarLingo.interpretWorld(text));
+    }
+
     // sanity-check toString
     @Test
     public void testToStringRoundTrip() {

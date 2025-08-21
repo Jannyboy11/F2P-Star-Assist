@@ -27,7 +27,11 @@ public enum StarLocation {
     CRANDOR_NORTH_MINE("Crandor north mine"),
     CRANDOR_SOUTH_MINE("Crandor south mine"),
     CORSAIR_COVE_BANK("Corsair Cove bank"),
-    CORSAIR_COVE_RESOURCE_AREA("Corsair Cove resource area");
+    CORSAIR_COVE_RESOURCE_AREA("Corsair Cove resource area"),
+
+    // P2P areas
+    SOUTH_CITHAREDE_ABBEY("South (East) of Citharede Abbey"),
+    MYTHS_GUILD("Myths' Guild");
 
     private final String humanFriendlyName;
 

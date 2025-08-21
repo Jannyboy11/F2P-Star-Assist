@@ -59,6 +59,14 @@ public class StarLingo {
      */
     //TODO return a Set<StarLocation> instead? then it's possible to return multiple locations if it's ambiguous (e.g. just 'Crandor')
     public static StarLocation interpretLocation(String text) {
+        //p2p locations
+        if (containsIgnoreCase(text, "myths"))
+            return StarLocation.MYTHS_GUILD;
+        if (containsAnyIgnoreCase(text, "uzer", "citharede", "sca", "uha", "nee"))
+            return StarLocation.SOUTH_CITHAREDE_ABBEY;
+        if (containsAllIgnoreCase(text, "desert", "eagle"))
+            return StarLocation.SOUTH_CITHAREDE_ABBEY;
+
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven", "ice"))
             return StarLocation.DWARVEN_MINE;

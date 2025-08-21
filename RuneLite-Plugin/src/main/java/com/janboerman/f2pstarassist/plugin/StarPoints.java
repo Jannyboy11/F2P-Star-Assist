@@ -37,6 +37,10 @@ public class StarPoints {
     static final WorldPoint CORSAIR_COVE_BANK = new WorldPoint(2567, 2858, 0);
     static final WorldPoint CORSAIR_COVE_RESOURCE_AREA = new WorldPoint(2483, 2886, 0);
 
+    //P2P locations
+    static final WorldPoint SOUTH_CITHAREDE_ABBEY = new WorldPoint(3424, 3160, 0);
+    static final WorldPoint MYTHS_GUILD = new WorldPoint(2468, 2842, 0);
+
     private static final Map<WorldPoint, StarLocation> LOCATIONS = new HashMap<>();
     static {
         LOCATIONS.put(WILDERNESS_RUNITE_MINE, StarLocation.WILDERNESS_RUNITE_MINE);
@@ -65,6 +69,9 @@ public class StarPoints {
         LOCATIONS.put(CRANDOR_SOUTH_MINE, StarLocation.CRANDOR_SOUTH_MINE);
         LOCATIONS.put(CORSAIR_COVE_BANK, StarLocation.CORSAIR_COVE_BANK);
         LOCATIONS.put(CORSAIR_COVE_RESOURCE_AREA, StarLocation.CORSAIR_COVE_RESOURCE_AREA);
+
+        LOCATIONS.put(SOUTH_CITHAREDE_ABBEY, StarLocation.SOUTH_CITHAREDE_ABBEY);
+        LOCATIONS.put(MYTHS_GUILD, StarLocation.MYTHS_GUILD);
     }
 
     public static WorldPoint fromLocation(StarLocation location) {
@@ -95,6 +102,9 @@ public class StarPoints {
             case CRANDOR_SOUTH_MINE: return CRANDOR_SOUTH_MINE;
             case CORSAIR_COVE_BANK: return CORSAIR_COVE_BANK;
             case CORSAIR_COVE_RESOURCE_AREA: return CORSAIR_COVE_RESOURCE_AREA;
+
+            case SOUTH_CITHAREDE_ABBEY: return SOUTH_CITHAREDE_ABBEY;
+            case MYTHS_GUILD: return MYTHS_GUILD;
 
             default: throw new RuntimeException("A new StarLocation was added which has no registered WorldPoint yet: " + location);
         }
@@ -127,6 +137,9 @@ public class StarPoints {
         if (starPoint == CRANDOR_SOUTH_MINE) return StarLocation.CRANDOR_SOUTH_MINE;
         if (starPoint == CORSAIR_COVE_BANK) return StarLocation.CORSAIR_COVE_BANK;
         if (starPoint == CORSAIR_COVE_RESOURCE_AREA) return StarLocation.CORSAIR_COVE_RESOURCE_AREA;
+
+        if (starPoint == SOUTH_CITHAREDE_ABBEY) return StarLocation.SOUTH_CITHAREDE_ABBEY;
+        if (starPoint == MYTHS_GUILD) return StarLocation.MYTHS_GUILD;
 
         return LOCATIONS.get(starPoint);
     }
