@@ -66,6 +66,10 @@ public class StarLingo {
             return StarLocation.SOUTH_CITHAREDE_ABBEY;
         if (containsAllIgnoreCase(text, "desert", "eagle"))
             return StarLocation.SOUTH_CITHAREDE_ABBEY;
+        if (containsAllIgnoreCase(text, "falador", "west"))
+            return StarLocation.FALADOR_WEST_MINE;
+        if (containsAllIgnoreCase(text, "soul", "wars"))
+            return StarLocation.SOUL_WARS_SOUTH_MINE;
 
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven", "ice"))

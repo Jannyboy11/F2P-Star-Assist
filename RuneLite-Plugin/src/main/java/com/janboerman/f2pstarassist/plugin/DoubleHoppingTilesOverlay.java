@@ -30,6 +30,9 @@ public class DoubleHoppingTilesOverlay extends Overlay {
             new DoubleHoppingTile("Varrock south east mine hopping location", new WorldPoint(3275, 3383, 0)),
             new DoubleHoppingTile("Al Kharid bank hopping location", new WorldPoint(3248, 3186, 0)),
             new DoubleHoppingTile("Lumbridge Swamp east mine hopping location", new WorldPoint(3246, 3183, 0)),
+            new DoubleHoppingTile("Corsair Cove Resource Area / Myths' Guild hopping location", new WorldPoint(2476, 2864, 0)),
+            new DoubleHoppingTile("Crandor south mine hopping location", new WorldPoint(2823, 3263, 0)),
+            new DoubleHoppingTile("Crandor north mine hopping location", new WorldPoint(2822, 3272, 0)),
     };
 
     private static final int MAX_DRAW_DISTANCE = 32;

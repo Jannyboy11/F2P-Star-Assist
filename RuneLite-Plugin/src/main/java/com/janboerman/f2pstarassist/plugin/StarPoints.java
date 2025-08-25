@@ -40,6 +40,9 @@ public class StarPoints {
     //P2P locations
     static final WorldPoint SOUTH_CITHAREDE_ABBEY = new WorldPoint(3424, 3160, 0);
     static final WorldPoint MYTHS_GUILD = new WorldPoint(2468, 2842, 0);
+    @Deprecated /**@deprecated not detectable*/
+    static final WorldPoint FALADOR_WEST_MINE = new WorldPoint(2906, 3355, 0);
+    static final WorldPoint SOUL_WARS_SOUTH_MINE = new WorldPoint(2200, 2792, 0);
 
     private static final Map<WorldPoint, StarLocation> LOCATIONS = new HashMap<>();
     static {
@@ -72,6 +75,8 @@ public class StarPoints {
 
         LOCATIONS.put(SOUTH_CITHAREDE_ABBEY, StarLocation.SOUTH_CITHAREDE_ABBEY);
         LOCATIONS.put(MYTHS_GUILD, StarLocation.MYTHS_GUILD);
+        LOCATIONS.put(FALADOR_WEST_MINE, StarLocation.FALADOR_WEST_MINE);
+        LOCATIONS.put(SOUL_WARS_SOUTH_MINE, StarLocation.SOUL_WARS_SOUTH_MINE);
     }
 
     public static WorldPoint fromLocation(StarLocation location) {
@@ -105,6 +110,8 @@ public class StarPoints {
 
             case SOUTH_CITHAREDE_ABBEY: return SOUTH_CITHAREDE_ABBEY;
             case MYTHS_GUILD: return MYTHS_GUILD;
+            case FALADOR_WEST_MINE: return FALADOR_WEST_MINE;
+            case SOUL_WARS_SOUTH_MINE: return SOUL_WARS_SOUTH_MINE;
 
             default: throw new RuntimeException("A new StarLocation was added which has no registered WorldPoint yet: " + location);
         }
@@ -140,6 +147,8 @@ public class StarPoints {
 
         if (starPoint == SOUTH_CITHAREDE_ABBEY) return StarLocation.SOUTH_CITHAREDE_ABBEY;
         if (starPoint == MYTHS_GUILD) return StarLocation.MYTHS_GUILD;
+        if (starPoint == FALADOR_WEST_MINE) return StarLocation.FALADOR_WEST_MINE;
+        if (starPoint == SOUL_WARS_SOUTH_MINE) return StarLocation.SOUL_WARS_SOUTH_MINE;
 
         return LOCATIONS.get(starPoint);
     }
