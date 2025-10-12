@@ -24,15 +24,16 @@ public class DoubleHoppingTilesOverlay extends Overlay {
     }
 
     private static final DoubleHoppingTile[] doubleHoppingTiles = {
-            new DoubleHoppingTile("Crafting Guild / Rimmington hopping location", new WorldPoint(2958, 3265, 0)),
-            new DoubleHoppingTile("Desert mine / PvP Arena hopping location", new WorldPoint(3323, 3289, 0)),
-            new DoubleHoppingTile("Varrock west bank hopping location", new WorldPoint(3275, 3384, 0)),
-            new DoubleHoppingTile("Varrock south east mine hopping location", new WorldPoint(3275, 3383, 0)),
-            new DoubleHoppingTile("Al Kharid bank hopping location", new WorldPoint(3248, 3186, 0)),
-            new DoubleHoppingTile("Lumbridge Swamp east mine hopping location", new WorldPoint(3246, 3183, 0)),
-            new DoubleHoppingTile("Corsair Cove Resource Area / Myths' Guild hopping location", new WorldPoint(2476, 2864, 0)),
-            new DoubleHoppingTile("Crandor south mine hopping location", new WorldPoint(2823, 3263, 0)),
-            new DoubleHoppingTile("Crandor north mine hopping location", new WorldPoint(2822, 3272, 0)),
+            new DoubleHoppingTile("CG / Rim hopping location", new WorldPoint(2958, 3265, 0)),
+            new DoubleHoppingTile("AKM / APA hopping location", new WorldPoint(3323, 3289, 0)),
+            new DoubleHoppingTile("VB hopping location", new WorldPoint(3275, 3384, 0)),
+            new DoubleHoppingTile("VSE hopping location", new WorldPoint(3275, 3383, 0)),
+            new DoubleHoppingTile("AKB hopping location", new WorldPoint(3248, 3186, 0)),
+            new DoubleHoppingTile("LSE mine hopping location", new WorldPoint(3246, 3183, 0)),
+            new DoubleHoppingTile("CCR / MG hopping location", new WorldPoint(2476, 2864, 0)),
+            new DoubleHoppingTile("SC hopping location", new WorldPoint(2823, 3263, 0)),
+            new DoubleHoppingTile("NC hopping location", new WorldPoint(2822, 3272, 0)),
+
     };
 
     private static final int MAX_DRAW_DISTANCE = 32;
@@ -85,3 +86,4 @@ public class DoubleHoppingTilesOverlay extends Overlay {
     }
 
 }
+
