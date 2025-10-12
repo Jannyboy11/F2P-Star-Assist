@@ -68,8 +68,6 @@ public class StarLingo {
             return StarLocation.SOUTH_CITHAREDE_ABBEY;
         if (containsAllIgnoreCase(text, "falador", "west"))
             return StarLocation.FALADOR_WEST_MINE;
-        if (containsAllIgnoreCase(text, "soul", "wars"))
-            return StarLocation.SOUL_WARS_SOUTH_MINE;
 
         //dwarven mine, falador, rimmington, crafting guild
         if (containsAnyIgnoreCase(text, "dwarf", "dwarven", "ice"))
@@ -164,7 +162,7 @@ public class StarLingo {
             return StarLocation.WILDERNESS_CENTRE_MINE;
         if (containsIgnoreCase(text, "skeleton"))
             return StarLocation.WILDERNESS_SOUTH_WEST_MINE;
-        if (containsIgnoreCase(text,"abyss"))
+        if (containsIgnoreCase(text, "abyss"))
             return StarLocation.WILDERNESS_SOUTH_MINE;
 
         //could not recognise location

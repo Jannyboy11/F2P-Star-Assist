@@ -33,8 +33,7 @@ public enum StarLocation {
     SOUTH_CITHAREDE_ABBEY("South (East) of Citharede Abbey"),
     MYTHS_GUILD("Myths' Guild"),
     @Deprecated /**@deprecated not detectable*/
-    FALADOR_WEST_MINE("Falador west mine"),
-    SOUL_WARS_SOUTH_MINE("Soul wars south mine");
+    FALADOR_WEST_MINE("Falador west mine");
 
     private final String humanFriendlyName;
 
