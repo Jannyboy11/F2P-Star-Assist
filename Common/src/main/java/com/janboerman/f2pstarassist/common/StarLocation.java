@@ -31,9 +31,9 @@ public enum StarLocation {
 
     // P2P areas
     SOUTH_CITHAREDE_ABBEY("South (East) of Citharede Abbey"),
-    MYTHS_GUILD("Myths' Guild"),
-    @Deprecated /**@deprecated not detectable*/
-    FALADOR_WEST_MINE("Falador west mine");
+    MYTHS_GUILD("Myths' Guild");
+    // Not detectable from f2p:
+    // FALADOR_WEST_MINE("Falador west mine");
 
     private final String humanFriendlyName;
 
