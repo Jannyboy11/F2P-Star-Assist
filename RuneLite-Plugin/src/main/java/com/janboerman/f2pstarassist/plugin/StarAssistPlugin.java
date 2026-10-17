@@ -7,7 +7,6 @@ import com.janboerman.f2pstarassist.common.*;
 import com.janboerman.f2pstarassist.common.lingo.StarLingo;
 import static com.janboerman.f2pstarassist.common.util.CollectionConvert.toSet;
 import static com.janboerman.f2pstarassist.plugin.TextUtil.stripChatIcon;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.*;
 import net.runelite.api.events.*;
@@ -26,6 +25,8 @@ import net.runelite.client.util.WorldUtil;
 import net.runelite.http.api.worlds.WorldResult;
 import okhttp3.Call;
 import okio.Buffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -39,9 +40,10 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 
-@Slf4j
 @PluginDescriptor(name = "F2P Star Assist")
 public class StarAssistPlugin extends Plugin {
+
+	private static final Logger log = LoggerFactory.getLogger(StarAssistPlugin.class);
 
 	//populated at construction
 	private final StarCache starCache;
@@ -207,7 +209,7 @@ public class StarAssistPlugin extends Plugin {
 		rsWorld.setAddress(world.getAddress());
 		rsWorld.setId(world.getId());
 		rsWorld.setPlayerCount(world.getPlayers());
-		rsWorld.setLocation(world.getLocation());
+		rsWorld.setLocation(world.getRegion().getId()); // mimic world hopper plugin
 		rsWorld.setTypes(WorldUtil.toWorldTypes(world.getTypes()));
 
 		return rsWorld;
